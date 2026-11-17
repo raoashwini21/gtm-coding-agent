@@ -1,346 +1,119 @@
-# GTM Coding Agent Starter Kit
+# domain-health
 
-> **Fork note.** This is a fork of [shawnla90/gtm-coding-agent](https://github.com/shawnla90/gtm-coding-agent) by Shawn Villaron (MIT). Everything here is his, unchanged, except one added skill: [`skills/domain-health/`](skills/domain-health/), a read-only domain health check for cold email. The original LICENSE is kept as is.
+A free, read-only check for your cold email sending domains. You give it your domains, and it tells you what to fix.
 
-**Build your go-to-market engine with coding agents, Python scripts, and structured context.**
+Built as an add-on to [Shawn Villaron's gtm-coding-agent](https://github.com/shawnla90/gtm-coding-agent) (MIT). It follows the same skill format. Credit for the repo and the format is his.
 
-Open this repo in [Claude Code](https://claude.ai/code) and type `help me set up`. The AI walks you through building a personalized GTM workspace — ICP, positioning, outbound sequences, content, automation — all from your terminal.
+## Why it exists
 
-Structured context + coding agents + Python scripts. Build alongside the tools you already use.
+Buying domains for cold email is the easy part. The DNS setup after it is where things quietly go wrong: a missing record, a record that is there twice, a blocklist listing you never saw. Checking it by hand means several websites and a lot of guessing about which problems matter.
 
----
+This runs all the checks in one go and sorts the results into a short list: **fix now**, **worth fixing**, **ignore**, and **not checked**.
 
-## New: build the Reddit client pack end to end
+## Quick start
 
-<p align="center"><a href="https://github.com/shawnla90/ClearboxGTM/releases/latest"><img src="https://raw.githubusercontent.com/shawnla90/ClearboxGTM/main/assets/gallery/client-pack-tour.gif" alt="ClearboxGTM client value pack: API dispositions to eleven-view Sheet and guided Notion brief" width="100%"></a></p>
-
-Chapters 18 and 19 now teach the current contract: Clearbox owns the source disposition and exact Reddit permalink; Freckle, Base Loop, or Clay may add analysis; the client receives one eleven-view working Sheet and one guided Notion brief; and retrieval, observed AI appearance, exact citation, engagement, and business outcomes remain separate receipts.
-
-This repo carries the broader GTM curriculum and portable starter. The complete maintained Reddit-growth implementation lives in **[ClearboxGTM](https://github.com/shawnla90/ClearboxGTM)**. See the **[latest ClearboxGTM release](https://github.com/shawnla90/ClearboxGTM/releases/latest)** for the live synthetic Sheet and Notion demo, visual walkthrough, agency skill, multi-account guide, attribution scorecard, fixtures, and builder.
-
----
-
-## Anatomy of This Repo
+You need Python 3 and a Terminal. Nothing to install.
 
 ```
-gtm-coding-agent/
-│
-├── CLAUDE.md                              # interactive onboarding         ← START HERE
-├── README.md                              # you are here
-│
-├── chapters/                              # 25 educational chapters
-│   ├── 01-coding-agents-vs-editors.md     #   agents vs cursor vs chatgpt
-│   ├── 02-context-engineering.md          #   CLAUDE.md, structured context
-│   ├── 03-token-efficiency.md             #   200K context, cost, subagents
-│   ├── 04-oauth-cli-apis.md               #   3 ways tools connect
-│   ├── 05-automation-agents.md            #   cron, n8n, trigger.dev
-│   ├── 06-local-first-gtm.md             #   your mac as a GTM server
-│   ├── 07-python-for-gtm.md              #   APIs, CSVs, enrichment
-│   ├── 08-tools-ecosystem.md             #   apollo, clay, exa, firecrawl
-│   ├── 09-voice-dna-content.md           #   voice extraction, anti-slop
-│   ├── 10-terminal-mastery.md            #   tmux, SSH, multiplexing
-│   ├── 11-build-your-dashboard.md        #   Next.js + Supabase signals dashboard
-│   ├── 12-competitive-intel-engine.md    #   SQLite-in-git + d3-force + Claude subprocess
-│   ├── 13-crm-automation-slash-commands.md  #  HubSpot + Salesforce + /stale-opportunities
-│   ├── 14-voice-invocation.md           #   transcript → voice-drift + content fan-out to Discord
-│   ├── 15-meta-ad-intelligence.md       #   Meta Ad Library scraper + Claude taxonomy + dashboard
-│   ├── 16-programmatic-landing-pages-hubspot-cms.md  #  HubSpot CMS Pages API + subagent columns
-│   ├── 17-client-onboarding-miro-boards.md  #  Miro onboarding boards + client docs package
-│   ├── 18-reddit-buyer-signals.md          #   Reddit buyer signals + GEO/competitor/content
-│   ├── 19-lead-unmasking-and-slack-digest.md  #  company-evidence gate + client packs + digest
-│   ├── 20-podcast-to-shorts.md             #   one recording → captioned vertical clip drafts
-│   ├── 21-student-gtm.md                   #   campus network → public GTM track record
-│   ├── 22-headless-linkedin-outreach.md    #   self-hosted Playwright outreach + SQLite ledger
-│   ├── 23-reachability-grading.md          #   Moltsets A-F grades → route by grade → color-coded sheet, next to your verifier (+ the Apollo overlap, said plainly)
-│   ├── 24-enrichment-on-the-go.md          #   your own Prospeo key, from Claude Code or a Grok agent, verified mobiles
-│   └── 25-stream-deck-command-center.md    #   Stream Deck+ profile generated from Python: project keys, Claude Code keys, content kickoffs, MCP
-│
-├── skills/                                # installable Claude Code skills (Reddit, reachability, reply loop, re-find)
-│   ├── clearbox-onboard/                  #   domain → researched Clearbox offer pack + pastable prompt
-│   ├── reddit-onboard/                    #   personalized route through the public playbook → Notion
-│   ├── reddit-engage/                     #   value-first replies, approve-each-one human gate
-│   ├── reddit-agency/                     #   11-view Sheet + guided brief + multi-account scorecard
-│   ├── reply-engine/                      #   gated ≤18-word reply templates + rules-pinned sheet tab
-│   ├── moltsets-reachability/             #   grade every email A-F, route the bad ones, read it in a sheet (Ch 23)
-│   ├── instantly-hubspot-replies/         #   log Instantly replies into HubSpot and reply from the sending mailbox (Ch 26-28)
-│   ├── dead-address-refind/               #   a retired mailbox is not a departure (Ch 29)
-│   └── domain-health/                     #   read-only SPF / DMARC / MX / DKIM / blocklist check → fix now list (added in this fork)
-│
-├── starters/                              # runnable starter folders (CLI + data)
-│   ├── apollo-prospecting/                #   Apollo waterfall: 5 intent gates → color-coded sheet (v0.8.0)
-│   ├── instantly-hubspot-replies/         #   reply-loop rules, webhook shape, HubSpot card (Ch 26-28)
-│   ├── moltsets-reachability/             #   Moltsets employment check + A-F grade → route by grade → 11-tab sheet, delta vs your verifier (Ch 23)
-│   ├── reddit-buyer-signals/              #   Reddit signals + GEO/competitor/unmask/digest (Ch 18-19)
-│   ├── hubspot-landing-engine/            #   brief → subagent columns → HubSpot CMS DRAFT pages (Ch 16)
-│   ├── market-scoring-sheet/              #   CSV → color-coded 1-5 scored Google Sheet
-│   ├── client-onboarding-miro/            #   Miro board templates (Ch 17)
-│   ├── podcast-shorts/                    #   recording → word-timed captioned vertical drafts (Ch 20)
-│   ├── stream-deck-command-center/        #   generated Stream Deck profile, project launchers, kickoffs (Ch 25)
-│   └── student-gtm/                       #   interview → your own build-in-public repo (Ch 21)
-│
-├── engine/                                # tool documentation (living, updated regularly)
-│   ├── apify.md                           #   Apify CLI: scraping, actors, follower lists
-│   ├── apollo.md                          #   Apollo: batch enrichment, job change detection
-│   ├── claude-subprocess.md               #   Claude CLI as a subprocess — batch analysis pattern
-│   ├── hubspot-cms.md                     #   HubSpot CMS Pages API v3 + HubL templates
-│   └── _tool-template.md                  #   template for adding new tools
-│
-├── gtm-os/                                # operational skeleton
-│   ├── CLAUDE.md                          #   GTM-OS operating instructions
-│   ├── demand/                            #   ICP, positioning, competitors
-│   ├── messaging/                         #   attack angles, value props
-│   ├── segments/                          #   target account segments
-│   ├── engine/                            #   tool integrations + docs
-│   │   └── prompts/                       #   reusable AI prompts
-│   ├── campaigns/active/                  #   live campaign tracking
-│   ├── content/                           #   content pipeline
-│   ├── status.md                          #   current GTM status
-│   └── log.md                             #   decision log
-│
-├── modes/                                 # persona-based starter configs
-│   ├── solo-founder.md                    #   one person, full stack GTM
-│   ├── agency.md                          #   multiple clients
-│   ├── single-client.md                   #   GTM eng at one company
-│   └── abm-outbound.md                   #   target account pipeline
-│
-├── templates/                             # reusable templates
-│   ├── claude-md/                         #   3 CLAUDE.md variants
-│   ├── voice/                             #   voice DNA, anti-slop rules
-│   ├── content/                           #   blog, content drop, SEO brief
-│   └── partner/                           #   per-client folder structure
-│
-├── examples/                              # worked examples (anonymized)
-│   ├── voice-dna/                         #   filled-in voice profile
-│   ├── icp/                               #   example ICP for B2B SaaS
-│   ├── prompts/                           #   qualification, gap analysis
-│   └── scripts/                           #   Python enrichment patterns (prospeo_enrich.py, Ch 24)
-│
-├── prompts/                               # ready-to-use AI prompts
-│   ├── icp-builder.md                     #   define ideal customer profile
-│   ├── positioning-workshop.md            #   positioning & differentiation
-│   ├── competitor-analysis.md             #   competitive landscape
-│   ├── signal-mapping.md                  #   buying signals → actions
-│   ├── email-sequence.md                  #   outbound email sequences
-│   └── content-repurpose.md              #   1 piece → 5 formats
-│
-├── starters/                              # deployable starter projects
-│   ├── signals-dashboard/                 #   Next.js + Supabase signals dashboard (Chapter 11)
-│   │   ├── schema/                        #     SQL schemas + seed data
-│   │   ├── pipeline/                      #     Python signal scoring pipeline
-│   │   └── src/                           #     dashboard app (5 pages, dark theme)
-│   ├── nexus-intel/                       #   SQLite-in-git competitive intel engine (Chapter 12)
-│   │   ├── src/                           #     Next.js app with d3-force Nexus graph
-│   │   ├── scripts/                       #     Apify CLI scrapers + Claude subprocess analyzers
-│   │   └── data/                          #     SQLite schema, public seed, committed intel.db
-│   ├── crm-automation/                    #   HubSpot stale-opportunity engine (Chapter 13)
-│   │   ├── stale_opportunity_check.py     #     surface 60-day deals, re-enrich, write custom props
-│   │   ├── .claude/commands/              #     /stale-opportunities slash command
-│   │   └── README.md                      #     setup + HubSpot custom property schema
-│   └── instantly-hubspot-replies/         #   reply-loop rules, webhook shape, HubSpot card (Ch 26-28)
-│
-└── social/                                # launch content
-    ├── reddit-post.md
-    ├── linkedin-post.md
-    └── carousel-slides.md
-```
-
-### Chapters 26 to 29
-
-Numbering starts at 26 so Chapter 25 can be the Stream Deck command center without colliding with Chapter 24 (Enrichment on the Go).
-
-| Chapter | File | You'll be able to |
-|---|---|---|
-| 26 - Cold Email Replies into the CRM | `chapters/26-replies-into-the-crm.md` | Log Instantly replies as HubSpot email engagements and open an unowned MQL deal only for an interested reply or the card's MQL button |
-| 27 - Going Live on the Reply Loop | `chapters/27-reply-loop-go-live.md` | Mint a service key and a personal access key without a seat, deploy the webhook and the cron, and prove 401 and 200 |
-| 28 - Reply from the Sending Mailbox | `chapters/28-reply-from-the-sending-mailbox.md` | Add a private HubSpot card that replies through Instantly from the campaign mailbox, and treat an empty thread as a 200 |
-| 29 - Dead Address versus Departed | `chapters/29-dead-address-versus-departed.md` | Treat a retired mailbox as a re-find, not a resignation, and swap the address only after a human yes |
-
-The production gotchas for that loop (campaign-name guard, `vercel env pull` placeholders, the User-Agent on `GET /api/v2/emails?lead=`, the legacy secondary-email PUT, workflow triggers, the blocklist) are the Build and Gotchas sections in `skills/instantly-hubspot-replies/SKILL.md`. A dead-address auto-reply that fills Instantly's reply status is `skills/dead-address-refind/SKILL.md`.
-
----
-
-## How It All Connects
-
-| | |
-|---|---|
-| **Interactive Onboarding** | **Educational Chapters** |
-| `CLAUDE.md` asks 6 questions, then builds your workspace. Recommends tools, mode, and learning path — all personalized. | 25 chapters from "what is a coding agent" to a Stream Deck command center, including holding your own enrichment key and calling it from the terminal or a phone agent. Read in order or jump to what you need. |
-| **GTM-OS Skeleton** | **Modes** |
-| A working folder structure for ICP, positioning, segments, campaigns, and content. Fork it. Fill it in. Run GTM from it. | 5 personas: solo founder, agency, single-client, ABM outbound, student. Each mode configures the skeleton differently. |
-| **Templates** | **Prompts** |
-| CLAUDE.md variants, voice DNA, content formats, partner structures. Copy into your projects, fill in the blanks. | 6 battle-tested AI prompts for ICP building, positioning, competitor analysis, signal mapping, email sequences, and content repurposing. |
-| **Starter Projects** | |
-| Ten forkable starters. **Apollo prospecting** (v0.8.0) grows a seed list through five intent gates, deepest intent first, and ships a color-coded Google Sheet; searches are free, credits only on reveal. **Reddit buyer signals** (Ch 18-19) preserves Clearbox dispositions and exact permalinks, measures Exa retrieval without calling it an AI citation, and enriches only exact company domains self-disclosed on the author's Reddit profile; search, thread, and handle matches stay in manual review. **Signals dashboard** (Ch 11) is Next.js + Supabase with 5 operational pages. **Nexus Intel** (Ch 12) is a Clay-companion intel engine with SQLite-in-git, d3-force graph, Apify CLI scrapers, and Claude subprocess analysis. **CRM Automation** (Ch 13) re-enriches 60-day-old HubSpot deals and writes the verdict back as custom properties. **Podcast to Shorts** (Ch 20) turns one recording into captioned vertical clips staged as drafts, cut against a word-timestamped transcript. **Student GTM** (Ch 21) interviews a student and scaffolds their own repo, weekly recording loop, gotchas log, and campus client offer. **Instantly to HubSpot** (Ch 26-28) is the reply-loop rules module, the webhook and cron shape, and the card that replies from the sending mailbox. Deploy any of them in minutes. | |
-
----
-
-## Read the Web Guide
-
-Prefer reading to forking? The full playbook is available as a book-style web guide:
-
-**[The GTM Coding Agent Playbook on shawnos.ai](https://shawnos.ai/guide/gtm-coding-agent)**
-
-23 chapters, expanded with narrative, examples, and Shawn's perspective. The web version is for reading cover to cover. This repo is for forking and building.
-
----
-
-## Powered by Clearbox
-
-🟧 The Reddit buyer-signal engine in this kit (Chapters 18 and 19) runs on **Clearbox**. Clearbox reads what your market is actually asking across Reddit, classifies each thread by buying intent, and hands you the leads, the competitor mentions, and the conversations worth joining. The kit is the open-source how. Clearbox is the engine that makes it live.
-
-The full Reddit motion has its own repo: **[ClearboxGTM](https://github.com/shawnla90/ClearboxGTM)**. It contains the maintained buyer-signal engine, client-pack builder, Freckle/Base Loop/Clay analysis path, public agency skills, multi-account controls, evidence scorecard, generated proof, and the visual client delivery system you can hand to a client or run for your own.
-
-**See your market. Move first.** Start a 7-day free trial at **[clearbox.to](https://clearbox.to)**.
-
----
-
-## See It In Action
-
-**Chapters 18–19 - Reddit client value pack:**
-
-[![ClearboxGTM client pack walkthrough](https://raw.githubusercontent.com/shawnla90/ClearboxGTM/main/assets/gallery/client-pack-tour-poster.png)](https://github.com/shawnla90/ClearboxGTM/releases/latest)
-
-*Clearbox API dispositions → optional Freckle, Base Loop, or Clay analysis → eleven-view Sheet → guided Notion brief. The demo uses synthetic fixtures.*
-
-**Chapter 11 - Signals Dashboard (Supabase + Recharts):**
-
-https://github.com/user-attachments/assets/295f3b1b-37e1-4686-8de3-9b2b9219c8cb
-
-*The signals dashboard running against a live Supabase database. 5 pages, dark theme, real-time polling.*
-
-**Chapter 12 - Nexus Intel (SQLite + d3-force, 2x speed):**
-
-![Nexus Intel demo](https://raw.githubusercontent.com/shawnla90/gtm-coding-agent/main/assets/videos/nexus-intel-demo-2x.gif)
-
-*The competitive intel engine. Clone, seed, boot, see signals.*
-
----
-
-## Quick Start
-
-```bash
-# 1. Clone the repo
-git clone https://github.com/shawnla90/gtm-coding-agent.git
+git clone https://github.com/raoashwini21/gtm-coding-agent
 cd gtm-coding-agent
-
-# 2. Open in Claude Code
-claude
-
-# 3. Type this
-> help me set up
+python3 skills/domain-health/check_domain.py yourdomain.com
 ```
 
-Claude reads the CLAUDE.md, asks you 6 questions about your GTM, then:
-- Recommends whether to start with Cursor or Claude Code
-- Picks your mode (solo founder, agency, etc.)
-- Builds your folder structure
-- Copies the right templates
-- Gives you a 3-5 chapter learning path
+Check several domains at once: `python3 skills/domain-health/check_domain.py one.com two.com`
 
----
+Add your DKIM selector (see below) like this: `yourdomain.com:selector1`
 
-## Who This Is For
+Using Claude Code? Open the repo and say "check the health of yourdomain.com".
 
-**You should use this if:**
-- You're a founder, GTM engineer, or agency operator
-- You want to use coding agents (Claude Code, Cursor, Codex) for GTM — not just chat
-- You want to understand what's happening under the hood of your GTM stack
-- You want a system you can build on, not just configure
+## What you get
 
-**You probably don't need this if:**
-- You have a 50-person marketing team with established tooling
-- You're looking for a no-code solution
-- You want a pre-built product, not a learning system
+This is real output from the demo data (`tests/fixtures/domain_health_demo.json`), not a real domain.
 
----
+| Domain | Fix now | Worth fixing | Not checked |
+|---|---|---|---|
+| good-example.com | 0 | 0 | 0 |
+| broken-example.com | 5 | 2 | 0 |
 
-## The Philosophy
+For each domain you get the details. Here is the broken one, with a "How" line under each fix:
 
-A GTM tool usually sells you a dashboard. This gives you a workspace.
+### broken-example.com
 
-The difference: a workspace is files you control, prompts you can edit, scripts you can modify, and context an AI agent can read. When your ICP, positioning, voice, and tooling all live in structured markdown files, a coding agent becomes your GTM co-pilot.
+**Fix now**
+- SPF: 2 SPF records found. More than one makes SPF fail outright.
+  - How: Merge them into a single v=spf1 record.
+- SPF: The record ends in +all (or has no qualifier), which allows anyone to send as this domain.
+  - How: End the record with ~all, or -all once every sender is listed.
+- DMARC: No DMARC record. Gmail requires one from bulk senders (5,000+ a day to personal Gmail) and recommends it for everyone.
+  - How: Add a TXT record at _dmarc.broken-example.com: v=DMARC1; p=none; rua=mailto:<an inbox you read>
+- DKIM: None of the selectors you gave (selector9) has a DKIM key published.
+  - How: Copy the DKIM record from your sending tool's setup page and publish it as a TXT (or CNAME) record at <selector>._domainkey.broken-example.com.
+- Spamhaus DBL: Listed as: spam domain.
+  - How: Look the domain up and request removal at https://check.spamhaus.org. First find out why: an unfamiliar listing often means a hacked site or an unknown sender. Matters most when this domain appears in the links or the From address of your emails.
 
-I still use HubSpot and Instantly. This is not about replacing tools. It's about understanding how things work and being able to build the pieces that don't exist yet. You'll learn how it works, then make it yours.
+**Worth fixing**
+- MX: No MX record. Replies to this domain cannot be delivered, and some receivers distrust a sender domain that cannot receive mail.
+  - How: Point MX at your mailbox provider (Google Workspace, Microsoft 365, ...).
+- SURBL multi: Listed as: spam/abuse.
+  - How: Look the domain up and request removal at https://surbl.org (use the lookup on the site). First find out why: an unfamiliar listing often means a hacked site or an unknown sender. Matters most when this domain appears in the links or the From address of your emails.
 
-## This Is a Living Repo
 
-This repo gets updated with real workflows I'm actively using and stress testing. Apify CLI scraping patterns, Apollo batch enrichment, Instagram growth automation, terminal multiplexing setups. If it's in here, I've run it. If it broke, I documented how.
+## What it checks, in plain words
 
-New commits land regularly as I discover better patterns, new CLI tools ship, or existing workflows evolve. The `engine/` folder has detailed tool documentation (Apify, Apollo, and more coming) with working scripts you can run today.
+| Check | What it means | What it looks for |
+|---|---|---|
+| **SPF** | The list of servers allowed to send email for your domain | Exactly one record, under 10 lookups (nested ones count), sensible ending |
+| **DKIM** | A signature that shows the email really came from you | A published key for the selector you give it, and a key that is not too weak |
+| **DMARC** | What receivers should do when SPF and DKIM checks fail | A record exists, a valid policy, a reports address |
+| **MX** | Where replies to your domain get delivered | Mail servers set up and reachable |
+| **Spamhaus DBL, SURBL, URIBL** | Blocklists of domains tied to spam, phishing or malware | Whether you are listed, and in which category |
 
-If you learn from this and want to help it grow, star it, fork it, open a PR. This is how we build a GTM coding agents community. Not through courses. Through shared systems that actually work.
+## How to read the list
 
-## Get notified when new chapters drop
+- **Fix now:** something that is broken, or a serious listing. Do these first.
+- **Worth fixing:** it works, but it is weak or risky. For example DMARC set to `p=none` is a fine start, not a place to stay.
+- **Ignore / fine:** all good, or a minor note that does not usually affect delivery.
+- **Not checked:** the tool could not be sure, so it says so instead of guessing. Treat it as a to-do. It is not a pass.
 
-New chapters and starters ship as tagged **[Releases](https://github.com/shawnla90/gtm-coding-agent/releases)**. Because everything here is code and version-controlled, each release is something you can fork and build on the same day. To catch them: **star** the repo (releases from repos you star surface in your GitHub home feed), and **Watch → Custom → Releases** for an email on each drop.
+A blocklist listing is not always an emergency. A listing for phishing, malware or a hacked site is serious. A minor abuse-category listing may not matter much. The list tells you which kind you have. It does not tell you why you were listed or remove the listing: for that, use the list's own site, which the "How" line points to.
 
----
+## DKIM selectors
 
-## What You'll Learn
+DKIM cannot be checked from the domain alone. The key sits under a name your sending tool picked, called a selector, and the domain does not reveal it.
 
-| Chapter | You'll Be Able To |
-|---------|-------------------|
-| 01 - Coding Agents vs Editors | Choose the right AI tool for your GTM workflow |
-| 02 - Context Engineering | Structure CLAUDE.md files that make agents 10x more useful |
-| 03 - Token Efficiency | Manage context windows without burning money |
-| 04 - OAuth, CLI, and APIs | Connect any GTM tool to your agent |
-| 05 - Automation Agents | Set up scripts that run your GTM on autopilot |
-| 06 - Local-First GTM | Turn your Mac into a GTM server |
-| 07 - Python for GTM | Write enrichment scripts, API calls, CSV pipelines |
-| 08 - Tools Ecosystem | Evaluate and integrate Apollo, Apify, Clay, Exa, Firecrawl |
-| 09 - Voice DNA & Content | Extract your voice, kill slop, create content that sounds like you |
-| 10 - Terminal Mastery | tmux, SSH, multiplexing for running multiple agent sessions |
-| 11 - Build Your Dashboard | Build and deploy a real-time GTM dashboard with Next.js, Supabase, and signal intelligence |
-| 12 - Competitive Intel Engine | Build a Clay-companion intel engine: SQLite-in-git, Apify CLI scrapers, Claude-as-subprocess analysis, d3-force Nexus graph |
-| 13 - CRM Automation & Slash Commands | Wire HubSpot and Salesforce to your agent, build `/stale-opportunities`, and mine the nurture graveyard AEs abandoned |
-| 14 - Voice-Invocation | Auto-run voice-drift on every meeting transcript, fan out content + signals to typed Discord channels for review |
-| 15 - Meta Ad Intelligence | Scrape the Meta Ad Library, classify creatives via Claude subprocess, pair declared strategy with demand signals |
-| 16 - Programmatic Landing Pages | Brief + subagent columns + HubSpot CMS Pages API v3. Personalized DRAFT landing pages, one command, controlled list |
-| 17 - Client Onboarding Miro Boards | Build a client-visible GTM engine map, docs package, and screenshot QA loop before kickoff |
-| 18 - Reddit Buyer Signals | Preserve classified buyer signals and exact permalinks, add Freckle/Base Loop/Clay analysis, build the eleven-view client pack, and measure each evidence level separately |
-| 19 - Company Evidence, Client Packs & Digest | Separate direct Reddit-profile disclosure from candidates and lookup errors, enrich only verified companies, then deliver stable client surfaces and the daily queue |
-| 20 - Podcast to Shorts | Turn one recording into captioned vertical clips staged as drafts, cut against a word-timestamped transcript |
-| 21 - Student GTM | Build a public go-to-market track record in one semester with no budget, no title, and the campus network you already have |
-| 22 - Headless LinkedIn Outreach | Run outreach from your own account with a Playwright sender, a SQLite ledger, and a read-only observer — and see why the connection note, not the follow-up, is the campaign |
-| 23 - Reachability Grading | Grade every address A-F with Moltsets, confirm the person is still there from the LinkedIn URL, and route the rows a suppress-only tool deletes: D to LinkedIn then phone, not-found to a second pass, all in a color-coded sheet. Lay the grades next to the verifier you already run (10,088 rows: 6,776 agreements, 819 corrected addresses, 793 job changes the verifier passed), with the Apollo overlap stated plainly |
-| 24 - Enrichment on the Go | Hold your own Prospeo key and call it from Claude Code or a Grok agent: verified email, verified mobile, search, then a cleared-to-call or email-only route |
-| 25 - Stream Deck Command Center | Generate a Stream Deck profile from Python, put each repo on a key that opens Claude Code with the right model, effort, and GitHub account, and run a draft, critique, render content pipeline with a human gate |
+- Find it in your sending tool's DKIM setup page, or in the raw headers of a sent email (`DKIM-Signature: d=yourdomain.com; s=selector1`).
+- Pass it like this: `yourdomain.com:selector1`.
+- If you give none, the tool tries a few common names. A hit is shown. A miss is **not checked**, never "missing", because your tool may use a different name.
 
----
+## Safe by design
 
-## Built With
+- Read-only. It only looks up public DNS. It sends no email, changes no records and needs no keys or accounts.
+- It only accepts valid-looking domain names, and a run is capped at 100 domains.
+- Blocklist lookups are spaced out. Do not run it over thousands of domains. The free blocklist services have usage terms (for example, Spamhaus's free use is for non-commercial use), so read them for large or commercial volume.
+- It refuses to report if your DNS cannot find `example.com`, because every "domain does not exist" result would then be wrong.
+- It skips the blocklists, and says so, when your DNS is a public one (1.1.1.1, 8.8.8.8, 9.9.9.9). Those lists answer such servers with an error code, not real data.
 
-- [Claude Code](https://claude.ai/code) — AI coding agent (primary)
-- [Cursor](https://cursor.com) — AI code editor (recommended for beginners)
-- Python 3.10+ — scripting and automation
-- Markdown — everything is structured text
-- [Next.js](https://nextjs.org) + [React](https://react.dev) — dashboard starters
-- [Supabase](https://supabase.com) — Postgres for the signals dashboard
-- [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) + [d3-force](https://d3js.org/d3-force) — Nexus Intel starter
-- [Apify CLI](https://apify.com) — scraping actors for both starters
-- [Recharts](https://recharts.org) + [shadcn/ui](https://ui.shadcn.com) — charts and components
+## Limits
 
----
+- It does not change your DNS. You make the fixes.
+- A clean report does not guarantee inbox placement. Warmup, volume, content and complaint rates matter too.
+- It checks domains, not sending IP addresses.
+- The SPF lookup count follows the terms in your record, including nested includes. It does not count the extra lookups that `mx` and `a` terms trigger inside the lookup, so it can read a little low for records with many of those.
+- Tested on Python 3.13 on Linux, with real DNS answers served from a local test server. It has also run live against a real domain. It is **not tested on Windows**. Windows has no `/etc/resolv.conf`, so it falls back to a public resolver (9.9.9.9) and skips the blocklists. Pass `--resolver` with your router's or provider's DNS address to get around that.
 
-## Contributing
+## Run the tests
 
-This is a living educational repo. If you've built GTM workflows with coding agents and want to contribute:
+```
+python3 -m unittest tests/test_domain_health.py
+```
 
-1. Fork the repo
-2. Add your example to `examples/` or your tool doc to `engine/` (anonymize client data)
-3. Open a PR with context on what GTM problem it solves
-4. Star the repo if it helped you. That's how others find it.
+They run offline against recorded DNS answers.
 
----
+## More detail
 
-## License
+- [`SKILL.md`](SKILL.md): the instructions for coding agents, with the full classification table
+- [`FACTCHECK.md`](FACTCHECK.md): the verified blocklist return codes, limits, and where each came from
 
-MIT — use it, fork it, make it yours.
+## Credit and license
 
----
-
-<p align="center">
-  <em>Stop renting GTM tools. Start building GTM systems.</em>
-  <br/><br/>
-  🟧 <strong>Clearbox</strong> &middot; See your market. Move first. &middot; <a href="https://clearbox.to">clearbox.to</a>
-</p>
+Built on [Shawn Tennam's gtm-coding-agent](https://github.com/shawnla90/gtm-coding-agent). This skill follows his skill format, and the original MIT LICENSE is kept. The check script and the tests are independent of the rest of the repo.
