@@ -111,9 +111,9 @@ They run offline against recorded DNS answers.
 
 ## More detail
 
-- [`SKILL.md`](SKILL.md): the instructions for coding agents, with the full classification table
-- [`FACTCHECK.md`](FACTCHECK.md): the verified blocklist return codes, limits, and where each came from
+- [`SKILL.md`](skills/domain-health/SKILL.md): the instructions for coding agents, with the full classification table
+- [`FACTCHECK.md`](skills/domain-health/FACTCHECK.md): the verified blocklist return codes, limits, and where each came from
 
 ## Credit and license
 
-Built on [Shawn Tennam's gtm-coding-agent](https://github.com/shawnla90/gtm-coding-agent). This skill follows his skill format, and the original MIT LICENSE is kept. The check script and the tests are independent of the rest of the repo.
+Built on [Shawn Tenam's gtm-coding-agent](https://github.com/shawnla90/gtm-coding-agent). This skill follows his skill format, and the original MIT LICENSE is kept. The check script and the tests are independent of the rest of the repo.
