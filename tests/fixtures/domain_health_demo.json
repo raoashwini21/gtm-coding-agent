@@ -1,0 +1,16 @@
+{
+  "good-example.com|TXT": ["v=spf1 include:_spf.mailhost.test -all"],
+  "_spf.mailhost.test|TXT": ["v=spf1 ip4:192.0.2.0/24 -all"],
+  "_dmarc.good-example.com|TXT": ["v=DMARC1; p=quarantine; rua=mailto:dmarc@good-example.com"],
+  "good-example.com|MX": [[10, "mx1.mailhost.test"]],
+  "mx1.mailhost.test|A": ["192.0.2.10"],
+  "google._domainkey.good-example.com|TXT": ["v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAdemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlydemoonlyAQAB"],
+
+  "broken-example.com|TXT": ["v=spf1 include:a.test +all", "v=spf1 -all"],
+  "a.test|TXT": ["v=spf1 -all"],
+  "broken-example.com|MX": [],
+  "broken-example.com.dbl.spamhaus.org|A": ["127.0.1.2"],
+  "broken-example.com.multi.surbl.org|A": ["127.0.0.64"],
+  "broken-example.com.multi.uribl.com|A": ["127.0.0.8"],
+  "good-example.com.dbl.spamhaus.org|A": "NXDOMAIN"
+}

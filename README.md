@@ -1,5 +1,7 @@
 # GTM Coding Agent Starter Kit
 
+> **Fork note.** This is a fork of [shawnla90/gtm-coding-agent](https://github.com/shawnla90/gtm-coding-agent) by Shawn Villaron (MIT). Everything here is his, unchanged, except one added skill: [`skills/domain-health/`](skills/domain-health/), a read-only domain health check for cold email. The original LICENSE is kept as is.
+
 **Build your go-to-market engine with coding agents, Python scripts, and structured context.**
 
 Open this repo in [Claude Code](https://claude.ai/code) and type `help me set up`. The AI walks you through building a personalized GTM workspace — ICP, positioning, outbound sequences, content, automation — all from your terminal.
@@ -61,7 +63,8 @@ gtm-coding-agent/
 │   ├── reply-engine/                      #   gated ≤18-word reply templates + rules-pinned sheet tab
 │   ├── moltsets-reachability/             #   grade every email A-F, route the bad ones, read it in a sheet (Ch 23)
 │   ├── instantly-hubspot-replies/         #   log Instantly replies into HubSpot and reply from the sending mailbox (Ch 26-28)
-│   └── dead-address-refind/               #   a retired mailbox is not a departure (Ch 29)
+│   ├── dead-address-refind/               #   a retired mailbox is not a departure (Ch 29)
+│   └── domain-health/                     #   read-only SPF / DMARC / MX / DKIM / blocklist check → fix now list (added in this fork)
 │
 ├── starters/                              # runnable starter folders (CLI + data)
 │   ├── apollo-prospecting/                #   Apollo waterfall: 5 intent gates → color-coded sheet (v0.8.0)
