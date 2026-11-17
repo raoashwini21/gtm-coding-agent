@@ -1,8 +1,8 @@
 # domain-health
 
-A free, read-only check for your cold email sending domains. You give it your domains, and it tells you what to fix.
+A free, read-only DNS health check for cold email domains: SPF, DKIM, DMARC, MX and blocklists.You give it your domains, and it tells you what to fix.
 
-Built as an add-on to [Shawn Villaron's gtm-coding-agent](https://github.com/shawnla90/gtm-coding-agent) (MIT). It follows the same skill format. Credit for the repo and the format is his.
+Built as an add-on to [Shawn Tenam's gtm-coding-agent](https://github.com/shawnla90/gtm-coding-agent) (MIT). It follows the same skill format. Credit for the repo and the format is his.
 
 ## Why it exists
 
