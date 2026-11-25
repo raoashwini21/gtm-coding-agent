@@ -151,5 +151,20 @@ class FactSheet(unittest.TestCase):
                 self.assertIsNone(re.search(r"[\w.+-]+@[\w-]+\.[\w.]+", text), f"email-like text in {p.name}")
 
 
+class Freshness(unittest.TestCase):
+    def test_fresh_and_stale(self):
+        import check_freshness as F
+        facts = [{"id": "a", "last_checked": "2026-11-25"}, {"id": "b", "last_checked": "2026-08-01"},
+                 {"id": "c", "last_checked": "not-a-date"}]
+        out = F.stale_facts(facts, F.dt.date(2026, 12, 20), 60)
+        self.assertEqual([i for i, _, _ in out], ["b", "c"])
+
+    def test_exit_codes(self):
+        import check_freshness as F
+        self.assertEqual(F.main(["--today", "2026-12-01"]), 0)
+        self.assertEqual(F.main(["--today", "2027-03-01"]), 1)
+        self.assertEqual(F.main(["--today", "bad"]), 2)
+
+
 if __name__ == "__main__":
     unittest.main()
