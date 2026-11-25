@@ -42,7 +42,7 @@ It asks the questions one at a time. You type a number and press Enter. It looks
 > 2
 ```
 
-At the end you get one or two routes: why each fits, what it can't find, and the exact first step. Take that route to your usual tools and build the list.
+At the end you get one or two routes: why each fits, what it can't find, and the exact first step. Take that route to your usual tools and build the list. Under each route you also get a list of tools that were checked (each with a source link, a date and whether it is a vendor's own claim), a short "how to choose between them" checklist, and a reminder that the list is not every tool that exists. Prices are left out on purpose; check each vendor's pricing page. If you pick "they post or comment about a topic", it asks one more question: where (LinkedIn, X, Reddit, YouTube or somewhere else).
 
 **With an AI agent**
 
@@ -56,7 +56,7 @@ Every tool fact in the report has a source link and a "last checked" date, plus 
 
 ## What you get
 
-For each route: why it fits, what it can't find, the first step, and tool facts with a source link and a "last checked" date. Then a short list of warnings (the rules of the platforms you picked, GDPR for EU/UK, weak buying signals from engagement).
+For each route: why it fits, what it can't find, the first step, tools that were checked (each with a source link, a "last checked" date and whether it is a vendor's own claim), and a "how to choose between them" checklist. No prices: check each vendor's pricing page. Then a short list of warnings (the rules of the platforms you picked, GDPR for EU/UK, weak buying signals from engagement).
 
 ## Honest limits
 

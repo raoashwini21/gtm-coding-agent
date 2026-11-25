@@ -173,7 +173,7 @@ It asks the questions one at a time. You type a number and press Enter. It looks
 > 2
 ```
 
-At the end you get one or two routes: why each fits, what it can't find, and the exact first step. Take that route to your usual tools and build the list.
+At the end you get one or two routes: why each fits, what it can't find, and the exact first step. Take that route to your usual tools and build the list. Under each route you also get a list of tools that were checked (each with a source link, a date and whether it is a vendor's own claim), a short "how to choose between them" checklist, and a reminder that the list is not every tool that exists. Prices are left out on purpose; check each vendor's pricing page. If you pick "they post or comment about a topic", it asks one more question: where (LinkedIn, X, Reddit, YouTube or somewhere else).
 
 **With an AI agent**
 
