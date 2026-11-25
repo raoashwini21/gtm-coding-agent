@@ -74,6 +74,8 @@ WARN_GDPR = ("EU/UK note: 'public' does not mean free to use. You become the dat
 WARN_SENSITIVE = ("Sensitive topic: posts that show someone's health, religion, politics and similar can be "
                   "special-category data (GDPR Article 9, see fact gdpr-1). Safer first step: find the places "
                   "and the creators these people follow, not a list of individuals.")
+SENSITIVE_FIRST_STEP = ("Find the places and the creators these people follow (communities, newsletters, podcasts, "
+                        "hashtags) and reach them there. Do not build a list of individuals from their posts.")
 WARN_PEOPLE = ("You sell to individuals, not companies. Stricter privacy and marketing-consent rules usually "
                "apply. Check them for the person's country before you contact anyone.")
 NOTE_CONTACTS = ("Contact data is out of scope. Once you have the list, use the tool you already use "
@@ -81,15 +83,18 @@ NOTE_CONTACTS = ("Contact data is out of scope. Once you have the list, use the 
 
 
 def validate(a):
+    if not isinstance(a, dict):
+        return ["the answers must be a JSON object like {\"audience\": \"business\", ...}"]
     problems = []
     for key, allowed in ENUMS.items():
-        if a.get(key) not in allowed:
-            problems.append(f"{key} must be one of {sorted(allowed)}, got {a.get(key)!r}")
+        v = a.get(key)
+        if not isinstance(v, str) or v not in allowed:
+            problems.append(f"{key} must be one of {sorted(allowed)}, got {v!r}")
     fp = a.get("footprints")
     if not isinstance(fp, list) or not fp:
         problems.append("footprints must be a non-empty list")
     else:
-        bad = [x for x in fp if x not in FOOTPRINTS]
+        bad = [x for x in fp if not isinstance(x, str) or x not in FOOTPRINTS]
         if bad:
             problems.append(f"unknown footprints {bad}; allowed {sorted(FOOTPRINTS)}")
     if not isinstance(a.get("sensitive", False), bool):
@@ -165,8 +170,11 @@ def recommend(a):
     for w in warnings:
         if w not in seen:
             seen.add(w); uniq.append(w)
+    overrides = {}
+    if 6 in chosen and a.get("sensitive"):
+        overrides[6] = {"first_step": SENSITIVE_FIRST_STEP, "hide_facts": True}
     return {"status": status, "routes": chosen, "scores": s, "skipped": notes,
-            "warnings": uniq, "note": NOTE_CONTACTS}
+            "overrides": overrides, "warnings": uniq, "note": NOTE_CONTACTS}
 
 
 def load_facts():
@@ -181,9 +189,14 @@ def render(a, result):
                 "Answer question 2 again with the places your buyer shows up in public.", ""]
     for i, r in enumerate(result["routes"], 1):
         info = ROUTES[r]
+        ov = result.get("overrides", {}).get(r, {})
         out += [f"## {i}. {info['name']}", f"**Why it fits:** {info['fits']}",
                 f"**What it can't find:** {info['cannot_find']}",
-                f"**First step:** {info['first_step']}", "**Facts (source, last checked):**"]
+                f"**First step:** {ov.get('first_step', info['first_step'])}"]
+        if ov.get("hide_facts"):
+            out += ["**Tools:** left out on purpose. This route should not start with scraping people's posts.", ""]
+            continue
+        out.append("**Facts (source, last checked):**")
         for fid in info["facts"]:
             f = facts[fid]
             src = f["source"] if isinstance(f["source"], str) else f["source"][0]
@@ -271,6 +284,15 @@ def ask_answers(read=input, say=print):
     return a
 
 
+def _read_stderr(prompt=""):
+    sys.stderr.write(prompt)
+    sys.stderr.flush()
+    line = sys.stdin.readline()
+    if line == "":
+        raise EOFError
+    return line.rstrip("\n")
+
+
 def main(argv=None, read=input):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--answers", help="path to a JSON file with the answers (skips the questions)")
@@ -287,7 +309,12 @@ def main(argv=None, read=input):
             return 2
     else:
         try:
-            a = ask_answers(read)
+            if args.format == "json":
+                say = lambda t="": print(t, file=sys.stderr)  # keep stdout clean for the JSON
+                read = _read_stderr if read is input else read
+            else:
+                say = print
+            a = ask_answers(read, say)
         except (EOFError, KeyboardInterrupt):
             print("\nStopped. Nothing was saved.", file=sys.stderr)
             return 130
@@ -296,9 +323,20 @@ def main(argv=None, read=input):
     except ValueError as e:
         print(f"Cannot recommend: {e}", file=sys.stderr)
         return 2
-    print(json.dumps(res, indent=2) if args.format == "json" else render(a, res))
+    try:
+        print(json.dumps(res, indent=2) if args.format == "json" else render(a, res))
+    except (OSError, ValueError, KeyError) as e:
+        print(f"Cannot build the report (is facts.json missing or damaged?): {e}", file=sys.stderr)
+        return 2
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except BrokenPipeError:  # for example: recommend.py | head
+        try:
+            sys.stdout.close()
+        except Exception:
+            pass
+        sys.exit(0)
