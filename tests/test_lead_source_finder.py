@@ -283,6 +283,30 @@ class Robustness(unittest.TestCase):
         finally:
             R.HERE = orig
 
+    def test_closed_pipe_is_silent_even_with_tiny_output_buffers(self):
+        """Piping into `head` must not print Python errors. macOS pipes use small buffers, so force one."""
+        import subprocess
+        hack = ("import sys, io, runpy\n"
+                "sys.stdout = io.TextIOWrapper(io.BufferedWriter(io.FileIO(1, 'w', closefd=False), 512), encoding='utf-8')\n"
+                "sys.argv = ['recommend.py']\n"
+                "runpy.run_path(%r, run_name='__main__')\n" % str(SKILL_DIR / "recommend.py"))
+        for _ in range(3):
+            p = subprocess.Popen([sys.executable, "-c", hack], stdin=subprocess.PIPE,
+                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            p.stdout.close()  # the reader has gone away before anything is written
+            try:
+                p.stdin.write("1\n2\n3\n2\n1\n2\n")
+                p.stdin.close()
+            except BrokenPipeError:
+                pass
+            err = p.stderr.read()
+            p.wait(timeout=30)
+            self.assertEqual(p.returncode, 0, err)
+            self.assertNotIn("Exception ignored", err)
+            self.assertNotIn("Traceback", err)
+            self.assertNotIn("BrokenPipe", err)
+
+
 
 class Freshness(unittest.TestCase):
     def test_fresh_and_stale(self):
