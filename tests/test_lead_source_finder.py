@@ -220,6 +220,70 @@ class AskMode(unittest.TestCase):
             R.main(["--answers", "x.json", "--ask"])
 
 
+class Robustness(unittest.TestCase):
+    def test_malformed_answers_raise_value_error_never_crash(self):
+        good = ans()
+        bad = [[], "x", None, 5, {}, {"audience": ["a"]},
+               dict(good, footprints=[["x"]]), dict(good, footprints=[{"a": 1}]),
+               dict(good, customers={"a": 1}), dict(good, footprints="linkedin"),
+               dict(good, sensitive="yes")]
+        for b in bad:
+            with self.subTest(str(b)[:40]):
+                with self.assertRaises(ValueError):
+                    R.recommend(b)
+
+    def test_bad_answers_file_exits_2_with_message(self):
+        import io, contextlib, tempfile, os
+        for content in ("[]", '"x"', "null", "5", "{}", "{bad json", ""):
+            with self.subTest(content), tempfile.TemporaryDirectory() as d:
+                f = os.path.join(d, "a.json")
+                open(f, "w").write(content)
+                err = io.StringIO()
+                with contextlib.redirect_stderr(err):
+                    code = R.main(["--answers", f])
+                self.assertEqual(code, 2)
+                self.assertIn("Cannot", err.getvalue())
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            self.assertEqual(R.main(["--answers", "/no/such/file.json"]), 2)
+
+    def test_sensitive_topic_changes_first_step_and_hides_scraper_facts(self):
+        a = SCENARIOS[0][1]
+        r = R.recommend(a)
+        md = R.render(a, r)
+        self.assertIn("Do not build a list of individuals", md)
+        self.assertNotIn("community-built actors", md)
+        self.assertIn("left out on purpose", md)
+        plain = dict(a, sensitive=False)
+        md2 = R.render(plain, R.recommend(plain))
+        self.assertIn("community-built actors", md2)
+        self.assertNotIn("Do not build a list of individuals", md2)
+
+    def test_json_mode_keeps_stdout_pure_json(self):
+        import io, contextlib
+        it = iter(["1", "1", "3", "1", "1", "2"])
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = R.main(["--format", "json"], read=lambda p="": next(it))
+        self.assertEqual(code, 0)
+        self.assertEqual(json.loads(out.getvalue())["routes"], [1])
+        self.assertIn("Who do you sell to", err.getvalue())
+
+    def test_missing_facts_file_gives_message_not_traceback(self):
+        import io, contextlib
+        orig = R.HERE
+        try:
+            R.HERE = Path("/no/such/dir")
+            it = iter(["1", "1", "3", "1", "1", "2"])
+            err = io.StringIO()
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+                code = R.main([], read=lambda p="": next(it))
+            self.assertEqual(code, 2)
+            self.assertIn("facts.json", err.getvalue())
+        finally:
+            R.HERE = orig
+
+
 class Freshness(unittest.TestCase):
     def test_fresh_and_stale(self):
         import check_freshness as F
