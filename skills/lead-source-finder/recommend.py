@@ -11,6 +11,8 @@ Two ways to use it:
 Answers (the JSON file the agent writes):
   audience    "business" | "people"        who you sell to (part of question 1)
   footprints  list of: linkedin, map, directory, topic, tool_or_hiring, website_words
+  platforms   list of: linkedin, x, reddit, youtube, other   (only if footprints has "topic";
+              where the buyer posts or comments. Missing means "other".)
   customers   "5plus" | "few" | "none"
   narrowness  "broad" | "niche" | "very_narrow"
   volume      "small_once" | "large_ongoing"
@@ -24,6 +26,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 FOOTPRINTS = {"linkedin", "map", "directory", "topic", "tool_or_hiring", "website_words"}
+PLATFORMS = {"linkedin", "x", "reddit", "youtube", "other"}
 ENUMS = {
     "audience": {"business", "people"},
     "customers": {"5plus", "few", "none"},
@@ -58,17 +61,45 @@ ROUTES = {
         "cannot_find": "Companies that never post jobs, and teams with no visible tools.",
         "first_step": "Name the one tool or the one job title that shows the need. Search only for that.",
         "facts": ["theirstack-1", "theirstack-2", "theirstack-3"]},
-    6: {"name": "People who write or engage about a topic",
+    6: {"name": "Posts and comments in your niche (LinkedIn, X, Reddit, YouTube or anywhere people post)",
         "fits": "Your buyer is very narrow and talks about one thing in public.",
         "cannot_find": "Quiet buyers. It also catches fans, students and competitors.",
-        "first_step": "Name the topic and the one place it gets discussed. Read 20 posts by hand before running any tool.",
-        "facts": ["apify-li-1"]},
+        "how": "Step 1: find the posts about your topic. Step 2: pull the people who wrote or commented on them.",
+        "first_step": "Name the topic and the place it gets discussed. Read 20 posts by hand. Pick the 5 to 10 best posts and note who wrote them and who commented. Only then choose a tool.",
+        "facts": []},
 }
+
+# Route 6 tools depend on where the buyer posts. Every id here must exist in facts.json.
+PLATFORM_FACTS = {
+    "linkedin": ["apify-li-1", "apify-li-2", "phantom-1", "clay-1", "salesnav-1"],
+    "x": ["x-1"],
+    "reddit": [],
+    "youtube": ["youtube-1"],
+    "other": [],
+}
+ALERT_FACTS = ["listen-1", "listen-2"]
+
+
+def route_facts(r, a):
+    if r != 6:
+        return list(ROUTES[r]["facts"])
+    ids = []
+    for p in (a.get("platforms") or ["other"]):
+        for fid in PLATFORM_FACTS.get(p, []):
+            if fid not in ids:
+                ids.append(fid)
+    return ids + ALERT_FACTS
 
 WARN_WEAK = ("Engagement is a weak buying signal. People who post or comment about a topic include "
              "competitor staff, students and fans. Treat the list as 'interested in the topic', not 'ready to buy'.")
 WARN_LINKEDIN = ("LinkedIn says scraping and automation tools break its User Agreement (Section 8.2) and "
                  "can get accounts restricted. Source: see fact linkedin-1.")
+WARN_X = ("X says crawling or scraping it without its written consent is prohibited, and its developer docs "
+          "list scraping and browser automation as banned non-API access. See fact x-2.")
+WARN_REDDIT = ("Reddit: commercial use of its data needs a separate agreement with Reddit, and one guide says its "
+               "terms do not allow collecting outside its API. See facts reddit-1 and reddit-2.")
+WARN_PLATFORM = ("Every platform has its own rules on collecting people's data. This skill has no checked rules "
+                 "for YouTube or the other places you picked, so read their terms before you collect anything.")
 WARN_GDPR = ("EU/UK note: 'public' does not mean free to use. You become the data controller for any "
              "personal data you collect, and you need a lawful basis. This is not legal advice. See facts gdpr-1 and gdpr-2.")
 WARN_SENSITIVE = ("Sensitive topic: posts that show someone's health, religion, politics and similar can be "
@@ -90,6 +121,14 @@ def validate(a):
         v = a.get(key)
         if not isinstance(v, str) or v not in allowed:
             problems.append(f"{key} must be one of {sorted(allowed)}, got {v!r}")
+    pl = a.get("platforms", None)
+    if pl is not None:
+        if not isinstance(pl, list) or not pl:
+            problems.append("platforms must be a non-empty list")
+        else:
+            badp = [x for x in pl if not isinstance(x, str) or x not in PLATFORMS]
+            if badp:
+                problems.append(f"unknown platforms {badp}; allowed {sorted(PLATFORMS)}")
     fp = a.get("footprints")
     if not isinstance(fp, list) or not fp:
         problems.append("footprints must be a non-empty list")
@@ -156,8 +195,13 @@ def recommend(a):
     if status == "vague":
         chosen = [1] if a["audience"] == "business" else [6]
     warnings = []
+    plats = set(a.get("platforms") or ["other"])
     if 6 in chosen:
-        warnings += [WARN_WEAK, WARN_LINKEDIN]
+        warnings.append(WARN_WEAK)
+        if "linkedin" in plats: warnings.append(WARN_LINKEDIN)
+        if "x" in plats: warnings.append(WARN_X)
+        if "reddit" in plats: warnings.append(WARN_REDDIT)
+        if plats & {"youtube", "other"}: warnings.append(WARN_PLATFORM)
     if 4 in chosen and "linkedin" in a["footprints"]:
         warnings.append(WARN_LINKEDIN)
     if (set(chosen) & {4, 6}) and a["region"] == "eu_uk":
@@ -191,23 +235,25 @@ def render(a, result):
         info = ROUTES[r]
         ov = result.get("overrides", {}).get(r, {})
         out += [f"## {i}. {info['name']}", f"**Why it fits:** {info['fits']}",
-                f"**What it can't find:** {info['cannot_find']}",
-                f"**First step:** {ov.get('first_step', info['first_step'])}"]
+                f"**What it can't find:** {info['cannot_find']}"]
+        if info.get("how"):
+            out.append(f"**How it works:** {info['how']}")
+        out.append(f"**First step:** {ov.get('first_step', info['first_step'])}")
         if ov.get("hide_facts"):
             out += ["**Tools:** left out on purpose. This route should not start with scraping people's posts.", ""]
             continue
         out.append("**Facts (source, last checked):**")
-        for fid in info["facts"]:
+        for fid in route_facts(r, a):
             f = facts[fid]
             src = f["source"] if isinstance(f["source"], str) else f["source"][0]
-            out.append(f"- {f['claim']} ([source]({src}), {f['last_checked']})")
+            out.append(f"- **{f['tool']}:** {f['claim']} ([source]({src}), {f['last_checked']})")
         out.append("")
     if result["warnings"]:
         out += ["## Before you start"] + [f"- {w}" for w in result["warnings"]]
         import re
         ids = []
         for w in result["warnings"]:
-            for fid in re.findall(r"\b(?:linkedin|gdpr)-\d\b", w):
+            for fid in re.findall(r"\b(?:linkedin|gdpr|x|reddit)-\d\b", w):
                 if fid not in ids:
                     ids.append(fid)
         for fid in ids:
@@ -229,7 +275,7 @@ QUESTIONS = [
      "options": [("They have a LinkedIn profile or company page", "linkedin"),
                  ("Their business is on a map (shops, clinics, gyms, restaurants)", "map"),
                  ("They are listed in a directory or on a job board", "directory"),
-                 ("They write or comment about a topic (posts, forums)", "topic"),
+                 ("They post or comment about a topic (LinkedIn, X, Reddit, YouTube, forums)", "topic"),
                  ("They use a specific tool, or hire for a specific role", "tool_or_hiring"),
                  ("Their website uses certain words", "website_words")]},
     {"key": "customers", "multi": False,
@@ -247,6 +293,10 @@ QUESTIONS = [
      "text": "6. Where are they? If any are in the EU or UK, pick 1.",
      "options": [("EU or UK", "eu_uk"), ("Somewhere else", "other")]},
 ]
+PLATFORMS_Q = {"key": "platforms", "multi": True,
+               "text": "Where do they post or comment? Pick all that fit, like 1,3",
+               "options": [("LinkedIn", "linkedin"), ("X (Twitter)", "x"), ("Reddit", "reddit"),
+                           ("YouTube", "youtube"), ("Somewhere else, or not sure", "other")]}
 SENSITIVE_Q = {"key": "sensitive", "multi": False,
                "text": "Last one. Do you find these people through something sensitive, like health, religion or politics?",
                "options": [("Yes", True), ("No", False)]}
@@ -279,6 +329,8 @@ def ask_answers(read=input, say=print):
     a = {}
     for q in QUESTIONS:
         a[q["key"]] = _ask_one(q, read, say)
+    if "topic" in a["footprints"]:
+        a["platforms"] = _ask_one(PLATFORMS_Q, read, say)
     a["sensitive"] = _ask_one(SENSITIVE_Q, read, say) if "topic" in a["footprints"] else False
     say("")
     return a

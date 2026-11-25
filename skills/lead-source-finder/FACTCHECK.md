@@ -19,7 +19,13 @@ An excerpt can leave out nearby caveats. So treat "search excerpt" facts as lead
 - **Apify actors.** Many LinkedIn post-search actors are community-made, priced differently ($1.50 to $5 per 1,000 posts in the listings seen) and some were marked "under maintenance". No single actor is recommended on purpose. Check the maintainer, last update and reviews.
 - **Apify Google Maps pricing** is pay per event with paid add-ons. A listing showed "from $1.50 per 1,000 scraped places" but a clean source for that exact figure was not kept, so it is not in `facts.json`.
 - **DiscoLike** statements are the vendor's own marketing. A DiscoLike versus Ocean.io comparison page exists, but vendors write their own comparisons, so none is used here.
-- **Reddit, Stack Overflow and Hacker News scrapers** were not researched. Route 6 mentions forums as a place to look by hand. No forum scraper or its terms are claimed.
+- **Route 6 tools by platform.** LinkedIn (Apify actors, PhantomBuster, Clay, Sales Navigator), X (Apify actors) and YouTube (Data API quota) have tool facts. **Reddit has rules but no scraper is named**, because Reddit's own position is that commercial use needs an agreement; third-party summaries disagree on details and pricing, so no price is stated. Stack Overflow, Hacker News, Facebook, Instagram and TikTok were not researched.
+- **Reddit rules** (`reddit-1`, `reddit-2`) come from third-party summaries, not Reddit's own pages. Open Reddit's Data API Terms before relying on them.
+- **X API pricing and the X API route** were not checked. `x-2` only says what X's terms say about scraping.
+- **YouTube**: only API quota facts. YouTube's rules on using commenters as leads were not checked. The report says so.
+- **Trigify** was left out. Sources disagreed on its price and one said "before the shutdown", so its status is unclear. Check it yourself if you want it.
+- **Alert tools** (`listen-1`, `listen-2`) come from listing sites and G2, not the vendors' own pages.
+- **Apify actor prices** for LinkedIn engagers ($1 to $6.50 per 1,000) and X ($0.00015 per tweet to $7.50 per 1,000) vary a lot because the actors are community-made. Several had 0 to 5 reviews and one was marked Deprecated. Check the maintainer, last update and reviews before you run any.
 
 ## Law and platform rules (not legal advice)
 

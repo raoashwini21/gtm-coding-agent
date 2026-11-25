@@ -21,7 +21,8 @@ def ans(**kw):
 # (name, answers, expected first route, routes that must be present, routes that must be absent)
 SCENARIOS = [
     ("mental-offloading app users (people, found from posts)",
-     ans(audience="people", footprints=["topic"], narrowness="very_narrow", region="eu_uk", sensitive=True),
+     ans(audience="people", footprints=["topic"], narrowness="very_narrow", region="eu_uk", sensitive=True,
+        platforms=["linkedin", "reddit"]),
      6, {6}, {1, 2}),
     ("real estate company, has 5+ happy customers",
      ans(footprints=["linkedin", "map"], customers="5plus", narrowness="niche"),
@@ -81,6 +82,43 @@ class Scenarios(unittest.TestCase):
         self.assertIn("weak buying signal", text)
         self.assertIn("Section 8.2", text)
 
+    def test_route6_warnings_follow_the_platforms_picked(self):
+        base = dict(footprints=["topic"], narrowness="very_narrow")
+        def warn(**kw):
+            return " ".join(R.recommend(ans(**base, **kw))["warnings"])
+        self.assertIn("Section 8.2", warn(platforms=["linkedin"]))
+        self.assertNotIn("Section 8.2", warn(platforms=["reddit"]))
+        self.assertIn("Reddit", warn(platforms=["reddit"]))
+        self.assertNotIn("Reddit", warn(platforms=["x"]))
+        self.assertIn("written consent", warn(platforms=["x"]))
+        self.assertNotIn("written consent", warn(platforms=["linkedin"]))
+        for plats in (["youtube"], ["other"], None):
+            kw = {} if plats is None else {"platforms": plats}
+            t = warn(**kw)
+            self.assertIn("no checked rules", t)
+            self.assertNotIn("Section 8.2", t)
+        self.assertNotIn("no checked rules", warn(platforms=["linkedin", "x", "reddit"]))
+
+    def test_route6_tools_follow_the_platforms_picked(self):
+        def md(plats):
+            a = ans(footprints=["topic"], narrowness="very_narrow", platforms=plats)
+            return R.render(a, R.recommend(a))
+        self.assertIn("LinkedIn engager actors", R.load_facts()["apify-li-2"]["tool"])
+        self.assertIn("commenters and reactors", md(["linkedin"]))
+        self.assertNotIn("commenters and reactors", md(["x"]))
+        self.assertIn("X scrapers", md(["x"]))
+        self.assertIn("quota unit", md(["youtube"]))
+        for p in ("linkedin", "x", "reddit", "youtube", "other"):
+            self.assertIn("F5Bot", md([p]))  # alert tools are shown for every platform
+        self.assertIn("Step 2: pull the people", md(["reddit"]))
+
+    def test_platforms_must_be_valid(self):
+        for bad in ([], "linkedin", ["facebook"], [1], None and []):
+            if bad is None:
+                continue
+            with self.assertRaises(ValueError):
+                R.recommend(ans(footprints=["topic"], platforms=bad))
+
     def test_gdpr_only_for_eu_uk_scraping_routes(self):
         eu = R.recommend(ans(footprints=["directory"], narrowness="niche", region="eu_uk"))
         us = R.recommend(ans(footprints=["directory"], narrowness="niche", region="other"))
@@ -138,10 +176,19 @@ class FactSheet(unittest.TestCase):
             for fid in info["facts"]:
                 self.assertIn(fid, ids, f"route {r} cites missing fact {fid}")
 
+    def test_platform_and_alert_facts_exist(self):
+        ids = {f["id"] for f in self.data["facts"]}
+        for plat, fids in R.PLATFORM_FACTS.items():
+            self.assertIn(plat, R.PLATFORMS)
+            for fid in fids:
+                self.assertIn(fid, ids, f"platform {plat} cites missing fact {fid}")
+        for fid in R.ALERT_FACTS:
+            self.assertIn(fid, ids)
+
     def test_warnings_cite_facts_that_exist(self):
         ids = {f["id"] for f in self.data["facts"]}
-        for w in (R.WARN_LINKEDIN, R.WARN_GDPR, R.WARN_SENSITIVE):
-            for fid in re.findall(r"\b(?:linkedin|gdpr)-\d\b", w):
+        for w in (R.WARN_LINKEDIN, R.WARN_GDPR, R.WARN_SENSITIVE, R.WARN_X, R.WARN_REDDIT, R.WARN_PLATFORM):
+            for fid in re.findall(r"\b(?:linkedin|gdpr|x|reddit)-\d\b", w):
                 self.assertIn(fid, ids)
 
     def test_no_personal_data_in_repo_files(self):
@@ -181,14 +228,17 @@ class AskMode(unittest.TestCase):
         self.assertEqual(a["footprints"], ["map"])
 
     def test_sensitive_question_only_when_topic_chosen(self):
-        read, say, said = self.feed(["2", "4", "3", "3", "1", "1", "1"])
+        read, say, said = self.feed(["2", "4", "3", "3", "1", "1", "1", "1"])
         a = R.ask_answers(read, say)
+        self.assertEqual(a["platforms"], ["linkedin"])
         self.assertTrue(a["sensitive"])
         self.assertTrue(any("sensitive" in s for s in said))
         read, say, said = self.feed(["1", "1", "3", "1", "1", "2"])
         a = R.ask_answers(read, say)
         self.assertFalse(a["sensitive"])
         self.assertFalse(any("sensitive" in s for s in said))
+        self.assertNotIn("platforms", a)
+        self.assertFalse(any("Where do they post" in s for s in said))
 
     def test_every_option_is_a_valid_answer(self):
         for q in R.QUESTIONS:

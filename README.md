@@ -5,7 +5,7 @@ Free, small skills for GTM work, built on top of [Shawn Tenam's gtm-coding-agent
 | Skill | What it does | Read more |
 |---|---|---|
 | [`domain-health`](skills/domain-health/) | Checks the DNS health of your cold email domains and tells you what to fix. | Below |
-| [`lead-source-finder`](skills/lead-source-finder/) | Helps you decide where to find the right leads (database, lookalikes, maps, hiring signals, or people who write about a topic), before you build the list. | [Jump down](#lead-source-finder) |
+| [`lead-source-finder`](skills/lead-source-finder/) | Helps you decide where to find the right leads (database, lookalikes, maps, hiring signals, or posts and comments in your niche), before you build the list. | [Jump down](#lead-source-finder) |
 
 ---
 
@@ -139,7 +139,7 @@ It is a decision helper for the step before the list. It does not fetch contact 
 
 ## Why it exists
 
-No single tool finds every kind of buyer. A database finds companies on LinkedIn. A map scraper finds a dentist. A lookalike tool needs customers to copy. A post scraper finds people who write about one topic. Picking the wrong one wastes a week, so this asks about the buyer first.
+No single tool finds every kind of buyer. A database finds companies on LinkedIn. A map scraper finds a dentist. A lookalike tool needs customers to copy. A post and comment scraper finds the people who talk about one topic on LinkedIn, X or Reddit. Picking the wrong one wastes a week, so this asks about the buyer first.
 
 ## The six routes
 
@@ -148,7 +148,7 @@ No single tool finds every kind of buyer. A database finds companies on LinkedIn
 3. Niche companies found by website wording
 4. Maps, directories and job boards, via scraping
 5. Hiring and tools-used signals
-6. People who write or engage about a topic
+6. Posts and comments in your niche (LinkedIn, X, Reddit, YouTube or anywhere people post)
 
 ## How to use it
 
