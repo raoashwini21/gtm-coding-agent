@@ -112,6 +112,32 @@ class Scenarios(unittest.TestCase):
             self.assertIn("F5Bot", md([p]))  # alert tools are shown for every platform
         self.assertIn("Step 2: pull the people", md(["reddit"]))
 
+    def test_every_route_shows_a_checklist_and_the_not_exhaustive_note(self):
+        self.assertEqual(set(R.CHECKLIST), set(R.ROUTES))
+        for r, items in R.CHECKLIST.items():
+            self.assertGreaterEqual(len(items), 3, r)
+        a = ans(footprints=["map"], narrowness="niche")
+        md = R.render(a, R.recommend(a))
+        self.assertIn("How to choose between them", md)
+        self.assertIn("not every tool that exists", md)
+        self.assertIn("(source, date, kind)", md)
+
+    def test_each_route_names_more_than_the_first_tools(self):
+        want = {1: "ZoomInfo", 2: "Landbase", 3: "Exa Websets", 4: "Outscraper", 5: "BuiltWith"}
+        facts = R.load_facts()
+        for r, name in want.items():
+            tools = " ".join(facts[f]["tool"] for f in R.route_facts(r, ans()))
+            self.assertIn(name, tools, f"route {r}")
+            self.assertGreaterEqual(len(R.ROUTES[r]["facts"]), 4, r)
+
+    def test_linkedin_warning_on_route4_needs_linkedin_and_a_job_board(self):
+        maps = R.recommend(ans(footprints=["map", "linkedin"], narrowness="niche"))
+        self.assertIn(4, maps["routes"])
+        self.assertFalse(any("Section 8.2" in w for w in maps["warnings"]))
+        jobs = R.recommend(ans(footprints=["directory", "linkedin"], narrowness="niche"))
+        self.assertIn(4, jobs["routes"])
+        self.assertTrue(any("Section 8.2" in w for w in jobs["warnings"]))
+
     def test_platforms_must_be_valid(self):
         for bad in ([], "linkedin", ["facebook"], [1], None and []):
             if bad is None:

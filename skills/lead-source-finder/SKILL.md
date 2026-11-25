@@ -57,11 +57,11 @@ Ask two extra things only if `topic` was picked:
 
 | # | Route | Fits when | Can't find |
 |---|---|---|---|
-| 1 | Business database filters (Apollo-style) | On LinkedIn, broad buyer | Small local businesses |
-| 2 | Lookalikes of your best customers (Ocean.io, DiscoLike) | 5 or more happy customers | Anything, if you have no customers yet |
-| 3 | Niche companies by website wording (DiscoLike) | Their site uses telling words | Sites that don't say it |
-| 4 | Maps, directories and job boards via scraping (Apify and similar) | Buyer sits on a map or directory | Anyone not listed in public |
-| 5 | Hiring and tools-used signals (TheirStack) | A tool or role shows the need | Companies that never post jobs |
+| 1 | Business database filters (Apollo, ZoomInfo, Cognism, Clay, Crunchbase and more in `facts.json`) | On LinkedIn, broad buyer | Small local businesses |
+| 2 | Lookalikes of your best customers (DiscoLike, Ocean.io, Apollo, Clay, Landbase, Dealfront) | 5 or more happy customers | Anything, if you have no customers yet |
+| 3 | Niche companies by website wording (DiscoLike, Clay, Exa Websets, Parallel FindAll) | Their site uses telling words | Sites that don't say it |
+| 4 | Maps, directories and job boards via scraping (Apify actors, Outscraper, Google Places API) | Buyer sits on a map or directory | Anyone not listed in public |
+| 5 | Hiring and tools-used signals (TheirStack, BuiltWith, Wappalyzer, PredictLeads, Coresignal) | A tool or role shows the need | Companies that never post jobs |
 | 6 | Posts and comments in your niche (LinkedIn, X, Reddit, YouTube, anywhere people post) | Very narrow buyer, talks about one thing in public | Quiet buyers; also catches fans and competitors |
 
 The script scores the answers and returns one route, or two when the second is close. It never returns more than two. Lookalikes are skipped unless there are 5 or more customers. If the answers don't point at anything, it says so and gives a safe starting point.
@@ -76,8 +76,10 @@ For each route: why it fits, what it can't find, the exact first step, and the t
 - **Say how old a fact is.** Prices and credits change. If `last_checked` is more than a few months old, tell the person to open the source link first.
 - **Vendor pages are marketing.** Facts marked "vendor claim" are what the vendor says. Say so.
 - **Recommend one or two routes, never all six.**
+- **The tool list is a starting list, not every tool that exists.** The report says so. If the person wants more options, or names a tool that is not in `facts.json`, search the web for current alternatives for that route. For each one you add, give the link and the date you read it, say whether the page is the vendor's own (marketing) or a third party's, and label it "found just now, not checked by this skill". Never state a price, limit or feature you did not read on a page. Do not rank tools as "best"; say what each is good at and what to test.
+- **Use the "How to choose between them" questions** from the report (country coverage, how credits are counted, cost per 1,000, data source, freshness) to compare any tool, including ones you add.
 - **Route 6 always carries the weak-signal warning**: people who comment about a topic include competitor staff, students and fans.
-- **Platform rules follow the platforms picked.** LinkedIn: scraping or automating it breaks its User Agreement (Section 8.2) and can get accounts restricted (also shown for route 4 with LinkedIn as a footprint). X: scraping without its written consent is prohibited. Reddit: commercial use of its data needs an agreement. YouTube and other places: no rules have been checked, and the report says so. Do not state a platform rule that is not in `facts.json`.
+- **Platform rules follow the platforms picked.** LinkedIn: scraping or automating it breaks its User Agreement (Section 8.2) and can get accounts restricted (also shown for route 4 when LinkedIn and a directory or job board are both footprints). X: scraping without its written consent is prohibited. Reddit: commercial use of its data needs an agreement. YouTube and other places: no rules have been checked, and the report says so. Do not state a platform rule that is not in `facts.json`.
 - **Route 6 has two steps**: find the posts about the topic, then pull the people who wrote or commented on them. Alert tools (F5Bot, Syften, Octolens) only tell you about posts; they do not build lists of people. Say so.
 - **EU/UK buyers**: "public" does not mean free to use. The person becomes the data controller and needs a lawful basis. This is not legal advice.
 - **Sensitive topics** (health, religion, politics and similar) can be special-category data under GDPR Article 9. Suggest finding the places and creators these people follow, not a list of individuals.

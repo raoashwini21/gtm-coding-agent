@@ -40,27 +40,27 @@ ROUTES = {
         "fits": "Your buyer is on LinkedIn and is a fairly broad type of business or job title.",
         "cannot_find": "Small local businesses and anyone who is not on a business database.",
         "first_step": "Write three filters: job title, company size and industry. Run them and read 20 results before you buy anything.",
-        "facts": ["apollo-1"]},
+        "facts": ["apollo-1", "apollo-2", "zoominfo-1", "cognism-1", "clay-2", "crunchbase-1", "credits-1"]},
     2: {"name": "Lookalikes of your best customers",
         "fits": "You already have 5 or more happy customers and the buyer is a type of company.",
         "cannot_find": "Anything useful if you have no customers yet, and buyers that are unlike your current ones.",
         "first_step": "List your 5 to 10 best customer domains. Use them as the seed.",
-        "facts": ["discolike-1", "ocean-1", "ocean-2"]},
+        "facts": ["discolike-1", "ocean-1", "ocean-2", "apollo-3", "clay-3", "landbase-1", "dealfront-1"]},
     3: {"name": "Niche companies found by website wording",
         "fits": "Your buyer's website would use words that give them away.",
         "cannot_find": "Companies whose site does not say what they do in those words.",
         "first_step": "Write the exact phrase a buyer's homepage would use. Test it on 10 results.",
-        "facts": ["discolike-2"]},
+        "facts": ["discolike-2", "clay-4", "exa-1", "parallel-1"]},
     4: {"name": "Maps, directories and job boards (scraping)",
         "fits": "Your buyer sits on a map, in a directory or on a job board.",
         "cannot_find": "Anyone who is not listed in public.",
         "first_step": "Pick the one place where your buyers are all listed. Run one small test search for one city.",
-        "facts": ["apify-maps-1", "apify-maps-2", "apify-maps-3"]},
+        "facts": ["apify-maps-1", "apify-maps-2", "apify-maps-3", "apify-maps-4", "outscraper-1", "gplaces-1"]},
     5: {"name": "Hiring and tools-used signals",
         "fits": "A tool they use or a role they hire for shows they need what you sell.",
         "cannot_find": "Companies that never post jobs, and teams with no visible tools.",
         "first_step": "Name the one tool or the one job title that shows the need. Search only for that.",
-        "facts": ["theirstack-1", "theirstack-2", "theirstack-3"]},
+        "facts": ["theirstack-1", "theirstack-2", "theirstack-3", "builtwith-1", "wappalyzer-1", "bloomberry-1", "predictleads-1", "coresignal-1"]},
     6: {"name": "Posts and comments in your niche (LinkedIn, X, Reddit, YouTube or anywhere people post)",
         "fits": "Your buyer is very narrow and talks about one thing in public.",
         "cannot_find": "Quiet buyers. It also catches fans, students and competitors.",
@@ -68,6 +68,36 @@ ROUTES = {
         "first_step": "Name the topic and the place it gets discussed. Read 20 posts by hand. Pick the 5 to 10 best posts and note who wrote them and who commented. Only then choose a tool.",
         "facts": []},
 }
+
+# Plain-words questions to ask before choosing between the tools of a route (advice, not tool facts).
+CHECKLIST = {
+    1: ["Does it cover the countries you sell to? Ask for a sample from your region first.",
+        "How are credits counted: one per contact, or emails and phones charged separately?",
+        "Can you preview how many companies match before you spend credits?",
+        "Do you need contact details at all? This skill does not cover them."],
+    2: ["Do you have 5 or more happy customers to use as the seed?",
+        "How many seed companies does the tool take, and does it want domains?",
+        "Read the top 20 matches by hand. Do they look like your best customers?",
+        "Can you export the size of list you need, and what does that cost?"],
+    3: ["Write the exact phrase a buyer's homepage would use before you pick a tool.",
+        "Does the tool read the real text on websites, or only labels like industry?",
+        "Open 10 results and check the sites yourself.",
+        "Is it a paid plan or a credit product? Check before you start."],
+    4: ["Is your buyer really listed there? Check 10 by hand.",
+        "Is it an official API or a scraper? Scrapers can break and have their own rules.",
+        "What does 1,000 places cost once phone and website details are included?",
+        "Does the maintainer's page show recent updates and reviews?"],
+    5: ["Can the tool see the tool or role you care about? Website-only tools miss tools that never show on a site.",
+        "Does the data come from job postings, website code, or both?",
+        "How fresh is it, and can you filter by title, tool and country?",
+        "Test with one tool or one job title before you buy."],
+    6: ["Read 20 posts by hand first.",
+        "Does the tool need no login, or does it use your own account? Your own account carries the risk.",
+        "Check the maintainer, last update and reviews of any actor.",
+        "Keep only the people whose headline fits your buyer."],
+}
+NOTE_MORE = ("These are the tools checked on the dates shown, not every tool that exists. If you use an AI agent, "
+             "ask it to search the web for current alternatives and to link a source for each one.")
 
 # Route 6 tools depend on where the buyer posts. Every id here must exist in facts.json.
 PLATFORM_FACTS = {
@@ -202,7 +232,7 @@ def recommend(a):
         if "x" in plats: warnings.append(WARN_X)
         if "reddit" in plats: warnings.append(WARN_REDDIT)
         if plats & {"youtube", "other"}: warnings.append(WARN_PLATFORM)
-    if 4 in chosen and "linkedin" in a["footprints"]:
+    if 4 in chosen and {"linkedin", "directory"} <= set(a["footprints"]):  # job boards can include LinkedIn
         warnings.append(WARN_LINKEDIN)
     if (set(chosen) & {4, 6}) and a["region"] == "eu_uk":
         warnings.append(WARN_GDPR)
@@ -242,12 +272,12 @@ def render(a, result):
         if ov.get("hide_facts"):
             out += ["**Tools:** left out on purpose. This route should not start with scraping people's posts.", ""]
             continue
-        out.append("**Facts (source, last checked):**")
+        out.append("**Tools checked (source, date, kind):**")
         for fid in route_facts(r, a):
             f = facts[fid]
             src = f["source"] if isinstance(f["source"], str) else f["source"][0]
-            out.append(f"- **{f['tool']}:** {f['claim']} ([source]({src}), {f['last_checked']})")
-        out.append("")
+            out.append(f"- **{f['tool']}:** {f['claim']} ([source]({src}), {f['last_checked']}, {f['kind']})")
+        out += ["", "**How to choose between them:**"] + [f"- {q}" for q in CHECKLIST[r]] + [""]
     if result["warnings"]:
         out += ["## Before you start"] + [f"- {w}" for w in result["warnings"]]
         import re
@@ -262,7 +292,7 @@ def render(a, result):
             links = ", ".join(f"[{i}]({s})" for i, s in enumerate(srcs, 1))
             out.append(f"  - `{fid}` ({f['last_checked']}): {f['claim']} {links}")
         out.append("")
-    out += [result["note"]]
+    out += [NOTE_MORE, "", result["note"]]
     return "\n".join(out)
 
 

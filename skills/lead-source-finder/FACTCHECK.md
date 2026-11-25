@@ -27,6 +27,13 @@ An excerpt can leave out nearby caveats. So treat "search excerpt" facts as lead
 - **Alert tools** (`listen-1`, `listen-2`) come from listing sites and G2, not the vendors' own pages.
 - **Apify actor prices** for LinkedIn engagers ($1 to $6.50 per 1,000) and X ($0.00015 per tweet to $7.50 per 1,000) vary a lot because the actors are community-made. Several had 0 to 5 reviews and one was marked Deprecated. Check the maintainer, last update and reviews before you run any.
 
+- **Routes 1 to 5 tool lists (added 2026-11-25).** Added ZoomInfo, Cognism, Clay, Crunchbase (route 1), Apollo, Clay, Landbase, Dealfront lookalikes (route 2), Clay, Exa Websets, Parallel FindAll (route 3), Outscraper, Google Places API and more Apify actors (route 4), BuiltWith, Wappalyzer, Bloomberry, PredictLeads, Coresignal (route 5). All were read in search excerpts, not full pages.
+- **Competitor claims.** Several facts come from a rival's page (Clay on Apollo, UpLead on credits, TheirStack on Coresignal and PredictLeads, Parallel on Exa, a competitor on Outscraper pricing). They are labelled `competitor claim` in the report. Use them as questions to test, not as verdicts.
+- **Database sizes are not stated** for ZoomInfo, Apollo, Lusha or Cognism because vendors' pages disagree (for example 500M contacts for ZoomInfo against 240M+ for Apollo on ZoomInfo's own blog).
+- **Prices not stated:** Google Places API (third-party posts disagree), Crunchbase (sources showed $29 and $99 monthly plans), Lusha, Cognism and ZoomInfo (no clear price in the sources read). Check each vendor's pricing page.
+- **BuiltWith and Wappalyzer prices** come from third-party reviews and G2, not from the vendors' pricing pages.
+- **Left out on purpose:** Seamless.AI, RocketReach, UpLead and similar contact-data tools (contact data is out of scope), and Trigify (unclear status).
+
 ## Law and platform rules (not legal advice)
 
 - **LinkedIn** (`linkedin-1`): from LinkedIn's own help page on prohibited software. It was read in a search excerpt. Whether any given scraping is lawful in a given country is a separate question this skill does not answer.
