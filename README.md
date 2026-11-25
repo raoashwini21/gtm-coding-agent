@@ -1,3 +1,14 @@
+# Add-on skills for gtm-coding-agent
+
+Free, small skills for GTM work, built on top of [Shawn Tenam's gtm-coding-agent](https://github.com/shawnla90/gtm-coding-agent) (MIT). I picked his repo because it was the simplest one to build on. Each skill follows his skill format and lives in its own folder under `skills/`. The credit for the repo and the format is his, and his LICENSE is kept.
+
+| Skill | What it does | Read more |
+|---|---|---|
+| [`domain-health`](skills/domain-health/) | Checks the DNS health of your cold email domains and tells you what to fix. | Below |
+| [`lead-source-finder`](skills/lead-source-finder/) | Helps you decide where to find the right leads (database, lookalikes, maps, hiring signals, or people who write about a topic), before you build the list. | [Jump down](#lead-source-finder) |
+
+---
+
 # domain-health
 
 A free, read-only DNS health check for cold email domains: SPF, DKIM, DMARC, MX and blocklists.You give it your domains, and it tells you what to fix.
@@ -116,4 +127,37 @@ They run offline against recorded DNS answers.
 
 ## Credit and license
 
-Built on [Shawn Tenam's gtm-coding-agent](https://github.com/shawnla90/gtm-coding-agent). This skill follows his skill format, and the original MIT LICENSE is kept. The check script and the tests are independent of the rest of the repo.
+Built on [Shawn Tenam's gtm-coding-agent](https://github.com/shawnla90/gtm-coding-agent). These skills follow his skill format, and the original MIT LICENSE is kept. The scripts and the tests are independent of the rest of the repo.
+
+---
+
+# lead-source-finder
+
+Not sure where to find the right leads? Answer six plain questions about your buyer and get one or two routes, with the exact first step for each.
+
+It is a decision helper for the step before the list. It does not fetch contact details, check emails or run any scraper. Once you have the list, use whatever contact tool you already use.
+
+## Why it exists
+
+No single tool finds every kind of buyer. A database finds companies on LinkedIn. A map scraper finds a dentist. A lookalike tool needs customers to copy. A post scraper finds people who write about one topic. Picking the wrong one wastes a week, so this asks about the buyer first.
+
+## The six routes
+
+1. Business database filters (Apollo-style)
+2. Lookalikes of your best customers (needs 5 or more customers)
+3. Niche companies found by website wording
+4. Maps, directories and job boards, via scraping
+5. Hiring and tools-used signals
+6. People who write or engage about a topic
+
+## Use it
+
+```
+git clone https://github.com/raoashwini21/gtm-coding-agent
+cd gtm-coding-agent
+python3 skills/lead-source-finder/recommend.py --answers answers.json
+```
+
+Or open the repo in Claude Code and say "where should I find leads for my buyer?". Every tool fact has a source link and a "last checked" date, and the report adds the LinkedIn, GDPR and weak-signal warnings that apply. Tests: `python3 -m unittest tests/test_lead_source_finder.py`.
+
+More: [`README.md`](skills/lead-source-finder/README.md), [`SKILL.md`](skills/lead-source-finder/SKILL.md), [`FACTCHECK.md`](skills/lead-source-finder/FACTCHECK.md). Not legal advice.
