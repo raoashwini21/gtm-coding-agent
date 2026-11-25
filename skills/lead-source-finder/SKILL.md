@@ -73,7 +73,8 @@ For each route: why it fits, what it can't find, the exact first step, and the t
 ## Rules for the agent
 
 - **Never state a tool fact that is not in `facts.json`.** Every claim there has a source and a date. If the person asks about something not in the file, say it is not checked and look it up with a source, or say you don't know. Never guess a price, a limit or a feature.
-- **Say how old a fact is.** Prices and credits change. If `last_checked` is more than a few months old, tell the person to open the source link first.
+- **Say how old a fact is.** Tools change. If `last_checked` is more than a few months old, tell the person to open the source link first.
+- **Do not quote prices.** The skill decides where to look, not what it costs, and prices change and disagree between sources. Point to the vendor's own pricing page and let the person compare. You can still pass on how credits are counted, since that is in the checklist.
 - **Vendor pages are marketing.** Facts marked "vendor claim" are what the vendor says. Say so.
 - **Recommend one or two routes, never all six.**
 - **The tool list is a starting list, not every tool that exists.** The report says so. If the person wants more options, or names a tool that is not in `facts.json`, search the web for current alternatives for that route. For each one you add, give the link and the date you read it, say whether the page is the vendor's own (marketing) or a third party's, and label it "found just now, not checked by this skill". Never state a price, limit or feature you did not read on a page. Do not rank tools as "best"; say what each is good at and what to test.

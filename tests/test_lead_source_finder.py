@@ -192,6 +192,11 @@ class FactSheet(unittest.TestCase):
                 self.assertIn(f["how"], ("page", "search excerpt"))
                 self.assertTrue(f["claim"].strip())
 
+    def test_no_prices_in_the_fact_sheet(self):
+        for f in self.data["facts"]:
+            self.assertNotRegex(f["claim"], r"[$€£]\s?\d", f["id"])
+            self.assertNotIn("price (", f["kind"], f["id"])
+
     def test_ids_unique(self):
         ids = [f["id"] for f in self.data["facts"]]
         self.assertEqual(len(ids), len(set(ids)))

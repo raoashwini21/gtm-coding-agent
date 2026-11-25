@@ -61,7 +61,7 @@ For each route: why it fits, what it can't find, the first step, and tool facts 
 ## Honest limits
 
 - The tools listed are the ones checked on the dates shown, not every tool that exists. Each report says so, and an AI agent will search for current alternatives if you ask.
-- Tool facts come from the vendors' own pages, third-party pages or search excerpts of them. Each fact says which (vendor claim, competitor claim, price). Open the source link before you decide. [`FACTCHECK.md`](FACTCHECK.md) lists what is solid and what is not.
+- Tool facts come from the vendors' own pages, third-party pages or search excerpts of them. Each fact says which (vendor claim, competitor claim, community listing). Open the source link before you decide. [`FACTCHECK.md`](FACTCHECK.md) lists what is solid and what is not.
 - Not legal advice.
 - It never runs a scraper for you.
 
