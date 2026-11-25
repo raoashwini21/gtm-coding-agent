@@ -237,7 +237,8 @@ class Robustness(unittest.TestCase):
         for content in ("[]", '"x"', "null", "5", "{}", "{bad json", ""):
             with self.subTest(content), tempfile.TemporaryDirectory() as d:
                 f = os.path.join(d, "a.json")
-                open(f, "w").write(content)
+                with open(f, "w") as fh:
+                    fh.write(content)
                 err = io.StringIO()
                 with contextlib.redirect_stderr(err):
                     code = R.main(["--answers", f])
@@ -296,10 +297,15 @@ class Robustness(unittest.TestCase):
             p.stdout.close()  # the reader has gone away before anything is written
             try:
                 p.stdin.write("1\n2\n3\n2\n1\n2\n")
-                p.stdin.close()
             except BrokenPipeError:
                 pass
+            finally:
+                try:
+                    p.stdin.close()
+                except BrokenPipeError:
+                    pass
             err = p.stderr.read()
+            p.stderr.close()
             p.wait(timeout=30)
             self.assertEqual(p.returncode, 0, err)
             self.assertNotIn("Exception ignored", err)
@@ -318,9 +324,11 @@ class Freshness(unittest.TestCase):
 
     def test_exit_codes(self):
         import check_freshness as F
-        self.assertEqual(F.main(["--today", "2026-12-01"]), 0)
-        self.assertEqual(F.main(["--today", "2027-03-01"]), 1)
-        self.assertEqual(F.main(["--today", "bad"]), 2)
+        import io, contextlib
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(F.main(["--today", "2026-12-01"]), 0)
+            self.assertEqual(F.main(["--today", "2027-03-01"]), 1)
+            self.assertEqual(F.main(["--today", "bad"]), 2)
 
 
 if __name__ == "__main__":
