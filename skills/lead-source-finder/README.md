@@ -19,17 +19,40 @@ No single tool finds every kind of buyer. A database finds companies on LinkedIn
 5. Hiring and tools-used signals
 6. People who write or engage about a topic
 
-## Use it
+## How to use it
 
-You need Python 3. Nothing to install.
+You need Python 3. Nothing else to install.
+
+**The simple way: answer six questions in Terminal**
 
 ```
 git clone https://github.com/raoashwini21/gtm-coding-agent
 cd gtm-coding-agent
-python3 skills/lead-source-finder/recommend.py --answers answers.json
+python3 skills/lead-source-finder/recommend.py
 ```
 
-Or open the repo in Claude Code and say "where should I find leads for my buyer?". The agent asks the questions for you.
+It asks the questions one at a time. You type a number and press Enter. It looks like this:
+
+```
+2. Where does your buyer leave footprints? Pick all that fit, like 1,3
+  1) They have a LinkedIn profile or company page
+  2) Their business is on a map (shops, clinics, gyms, restaurants)
+  3) They are listed in a directory or on a job board
+  ...
+> 2
+```
+
+At the end you get one or two routes: why each fits, what it can't find, and the exact first step. Take that route to your usual tools and build the list.
+
+**With an AI agent**
+
+Open the folder in Claude Code (`cd gtm-coding-agent`, then `claude`) and say: **"Where should I find leads for my buyer?"** The agent asks the same questions in chat and runs the script for you. Other coding agents that read a repo's files should work too, but I have only checked Claude Code.
+
+**For scripts**
+
+`python3 skills/lead-source-finder/recommend.py --answers answers.json` skips the questions and reads a file instead. The fields are listed in [`SKILL.md`](SKILL.md).
+
+Every tool fact in the report has a source link and a "last checked" date, plus the LinkedIn, GDPR and weak-signal warnings that apply. Tests: `python3 -m unittest tests/test_lead_source_finder.py`.
 
 ## What you get
 
