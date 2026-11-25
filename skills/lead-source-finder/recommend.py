@@ -4,7 +4,11 @@
 Standard library only. It never touches the network, never scrapes, and never stores or
 returns personal data. It decides WHERE to look; it does not fetch contacts or check emails.
 
-Answers (JSON file or flags):
+Two ways to use it:
+  python3 recommend.py            asks you the questions, one at a time (no files needed)
+  python3 recommend.py --answers answers.json    for an AI agent or a script
+
+Answers (the JSON file the agent writes):
   audience    "business" | "people"        who you sell to (part of question 1)
   footprints  list of: linkedin, map, directory, topic, tool_or_hiring, website_words
   customers   "5plus" | "few" | "none"
@@ -203,14 +207,90 @@ def render(a, result):
     return "\n".join(out)
 
 
-def main(argv=None):
+QUESTIONS = [
+    {"key": "audience", "multi": False,
+     "text": "1. Who do you sell to?",
+     "options": [("Businesses", "business"), ("Individual people", "people")]},
+    {"key": "footprints", "multi": True,
+     "text": "2. Where does your buyer leave footprints? Pick all that fit, like 1,3",
+     "options": [("They have a LinkedIn profile or company page", "linkedin"),
+                 ("Their business is on a map (shops, clinics, gyms, restaurants)", "map"),
+                 ("They are listed in a directory or on a job board", "directory"),
+                 ("They write or comment about a topic (posts, forums)", "topic"),
+                 ("They use a specific tool, or hire for a specific role", "tool_or_hiring"),
+                 ("Their website uses certain words", "website_words")]},
+    {"key": "customers", "multi": False,
+     "text": "3. Do you already have happy customers?",
+     "options": [("5 or more", "5plus"), ("A few (1 to 4)", "few"), ("None yet", "none")]},
+    {"key": "narrowness", "multi": False,
+     "text": "4. How narrow is your buyer?",
+     "options": [("Broad (for example, any SaaS company)", "broad"),
+                 ("A niche (one kind of business)", "niche"),
+                 ("Very narrow (one kind of person saying one kind of thing)", "very_narrow")]},
+    {"key": "volume", "multi": False,
+     "text": "5. How many leads do you need?",
+     "options": [("A few hundred, once", "small_once"), ("Thousands, every month", "large_ongoing")]},
+    {"key": "region", "multi": False,
+     "text": "6. Where are they? If any are in the EU or UK, pick 1.",
+     "options": [("EU or UK", "eu_uk"), ("Somewhere else", "other")]},
+]
+SENSITIVE_Q = {"key": "sensitive", "multi": False,
+               "text": "Last one. Do you find these people through something sensitive, like health, religion or politics?",
+               "options": [("Yes", True), ("No", False)]}
+
+
+def _ask_one(q, read, say):
+    say("")
+    say(q["text"])
+    for i, (label, _) in enumerate(q["options"], 1):
+        say(f"  {i}) {label}")
+    n = len(q["options"])
+    while True:
+        raw = read("> ").strip()
+        try:
+            picks = [int(x) for x in raw.replace(" ", "").split(",") if x != ""] if q["multi"] else [int(raw)]
+        except ValueError:
+            picks = []
+        if picks and all(1 <= k <= n for k in picks) and (q["multi"] or len(picks) == 1):
+            vals = []
+            for k in picks:
+                if q["options"][k - 1][1] not in vals:
+                    vals.append(q["options"][k - 1][1])
+            return vals if q["multi"] else vals[0]
+        say(f"Please type a number from 1 to {n}" + (", or several like 1,3." if q["multi"] else "."))
+
+
+def ask_answers(read=input, say=print):
+    """Ask the questions one at a time and return the answers dict. No files, no network."""
+    say("Where should you find your leads? Six quick questions. Type a number and press Enter.")
+    a = {}
+    for q in QUESTIONS:
+        a[q["key"]] = _ask_one(q, read, say)
+    a["sensitive"] = _ask_one(SENSITIVE_Q, read, say) if "topic" in a["footprints"] else False
+    say("")
+    return a
+
+
+def main(argv=None, read=input):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--answers", help="path to a JSON file with the answers")
+    p.add_argument("--answers", help="path to a JSON file with the answers (skips the questions)")
+    p.add_argument("--ask", action="store_true", help="ask the questions here (this is the default)")
     p.add_argument("--format", choices=["md", "json"], default="md")
     args = p.parse_args(argv)
-    if not args.answers:
-        p.error("give --answers answers.json (see the docstring for the fields)")
-    a = json.loads(Path(args.answers).read_text())
+    if args.answers and args.ask:
+        p.error("use either --answers or --ask, not both")
+    if args.answers:
+        try:
+            a = json.loads(Path(args.answers).read_text())
+        except (OSError, ValueError) as e:
+            print(f"Cannot read {args.answers}: {e}", file=sys.stderr)
+            return 2
+    else:
+        try:
+            a = ask_answers(read)
+        except (EOFError, KeyboardInterrupt):
+            print("\nStopped. Nothing was saved.", file=sys.stderr)
+            return 130
     try:
         res = recommend(a)
     except ValueError as e:
