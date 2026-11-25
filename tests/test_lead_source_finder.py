@@ -151,6 +151,75 @@ class FactSheet(unittest.TestCase):
                 self.assertIsNone(re.search(r"[\w.+-]+@[\w-]+\.[\w.]+", text), f"email-like text in {p.name}")
 
 
+class AskMode(unittest.TestCase):
+    def feed(self, lines):
+        it = iter(lines)
+        said = []
+        def read(prompt=""):
+            try:
+                return next(it)
+            except StopIteration:
+                raise EOFError
+        return read, said.append, said
+
+    def test_answers_match_what_was_typed(self):
+        read, say, _ = self.feed(["1", "1,2", "3", "2", "1", "2"])
+        a = R.ask_answers(read, say)
+        self.assertEqual(a, dict(audience="business", footprints=["linkedin", "map"], customers="none",
+                                 narrowness="niche", volume="small_once", region="other", sensitive=False))
+        R.recommend(a)  # must be accepted as valid
+
+    def test_bad_input_is_asked_again(self):
+        read, say, said = self.feed(["9", "abc", "", "2", "1", "1", "1", "1", "1", "1"])
+        a = R.ask_answers(read, say)
+        self.assertEqual(a["audience"], "people")
+        self.assertGreaterEqual(sum("Please type a number" in s for s in said), 3)
+
+    def test_multi_pick_rejects_out_of_range_and_dedupes(self):
+        read, say, _ = self.feed(["1", "7", "2,2,2", "1", "1", "1", "1"])
+        a = R.ask_answers(read, say)
+        self.assertEqual(a["footprints"], ["map"])
+
+    def test_sensitive_question_only_when_topic_chosen(self):
+        read, say, said = self.feed(["2", "4", "3", "3", "1", "1", "1"])
+        a = R.ask_answers(read, say)
+        self.assertTrue(a["sensitive"])
+        self.assertTrue(any("sensitive" in s for s in said))
+        read, say, said = self.feed(["1", "1", "3", "1", "1", "2"])
+        a = R.ask_answers(read, say)
+        self.assertFalse(a["sensitive"])
+        self.assertFalse(any("sensitive" in s for s in said))
+
+    def test_every_option_is_a_valid_answer(self):
+        for q in R.QUESTIONS:
+            for _, val in q["options"]:
+                if q["key"] in R.ENUMS:
+                    self.assertIn(val, R.ENUMS[q["key"]])
+                if q["key"] == "footprints":
+                    self.assertIn(val, R.FOOTPRINTS)
+        self.assertEqual({v for _, v in R.QUESTIONS[1]["options"]}, R.FOOTPRINTS)
+
+    def test_main_ask_mode_and_stopping(self):
+        import io, contextlib
+        read, _, _ = self.feed(["1", "2", "3", "2", "1", "2"])
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = R.main([], read=read)
+        self.assertEqual(code, 0)
+        self.assertIn("Maps, directories", out.getvalue())
+        read, _, _ = self.feed(["1", "2"])  # runs out of input halfway
+        err = io.StringIO()
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+            code = R.main([], read=read)
+        self.assertEqual(code, 130)
+        self.assertIn("Nothing was saved", err.getvalue())
+
+    def test_answers_and_ask_together_is_refused(self):
+        import io, contextlib
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            R.main(["--answers", "x.json", "--ask"])
+
+
 class Freshness(unittest.TestCase):
     def test_fresh_and_stale(self):
         import check_freshness as F
