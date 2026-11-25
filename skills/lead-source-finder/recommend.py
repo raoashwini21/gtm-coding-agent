@@ -335,8 +335,10 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except BrokenPipeError:  # for example: recommend.py | head
+        # Python flushes stdout again on exit and would print a second error, so point it at /dev/null.
+        import os
         try:
-            sys.stdout.close()
+            os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
         except Exception:
             pass
         sys.exit(0)
