@@ -325,6 +325,8 @@ def main(argv=None, read=input):
         return 2
     try:
         print(json.dumps(res, indent=2) if args.format == "json" else render(a, res))
+    except BrokenPipeError:
+        raise
     except (OSError, ValueError, KeyError) as e:
         print(f"Cannot build the report (is facts.json missing or damaged?): {e}", file=sys.stderr)
         return 2
@@ -333,12 +335,13 @@ def main(argv=None, read=input):
 
 if __name__ == "__main__":
     try:
-        sys.exit(main())
+        code = main()
+        sys.stdout.flush()  # a closed pipe shows up here, not at exit
     except BrokenPipeError:  # for example: recommend.py | head
-        # Python flushes stdout again on exit and would print a second error, so point it at /dev/null.
         import os
         try:
             os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
         except Exception:
             pass
-        sys.exit(0)
+        code = 0
+    sys.exit(code)
