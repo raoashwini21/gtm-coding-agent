@@ -1,0 +1,43 @@
+name: Lead Source Finder facts reminder
+
+# Once a month, check whether any fact in skills/lead-source-finder/facts.json is older than 60 days.
+# If so, open one issue and assign it to the repo owner, so GitHub emails them.
+# Needs no secrets. Uses the built-in token with permission to write issues only.
+
+on:
+  schedule:
+    - cron: "30 4 1 * *"   # 1st of each month, 04:30 UTC (10:00 IST)
+  workflow_dispatch: {}      # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Look for stale facts
+        id: fresh
+        run: |
+          set +e
+          python3 skills/lead-source-finder/check_freshness.py --max-age-days 60 --md "$RUNNER_TEMP/stale.md"
+          code=$?
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          [ "$code" = "2" ] && exit 2
+          exit 0
+      - name: Open a reminder issue (only if none is open)
+        if: steps.fresh.outputs.code == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          gh label create facts-stale --color FBCA04 --description "Lead Source Finder facts need a refresh" 2>/dev/null || true
+          open=$(gh issue list --label facts-stale --state open --json number --jq length)
+          if [ "$open" = "0" ]; then
+            gh issue create --title "Refresh the Lead Source Finder facts" \
+              --body-file "$RUNNER_TEMP/stale.md" --label facts-stale --assignee "$OWNER"
+          else
+            echo "A reminder issue is already open. Not opening another."
+          fi
